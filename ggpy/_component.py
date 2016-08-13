@@ -15,13 +15,17 @@ class Component(dict):
         else:
             pass
 
+    def _combine_items(self, item1, item2):
+        return item2
+
     def __add__(self, other):
         if not (type(other) == dict or type(self) == type(other)):
             raise ValueError("Cannot add %s to type %s" % (type(self).__name__, type(other).__name__))
         nd = dict(self)
         for key, value in other.items():
-            if value is not None:
-                nd[key] = value
+            newval = self._combine_items(nd[key] if key in nd else None, value)
+            if newval is not None:
+                nd[key] = newval
         return type(self)(**nd)
 
     def __radd__(self, other):
@@ -29,8 +33,9 @@ class Component(dict):
             raise ValueError("Cannot add %s to type %s" % (type(self).__name__, type(other).__name__))
         nd = dict(other)
         for key, value in self.items():
-            if value is not None:
-                nd[key] = value
+            newval = self._combine_items(nd[key] if key in nd else None, value)
+            if newval is not None:
+                nd[key] = newval
         return type(self)(**nd)
 
     def __repr__(self):
