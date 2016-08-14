@@ -1,5 +1,6 @@
 
 from ._component import Component
+import pandas as pd
 
 _all_aesthetics = ("adj", "alpha", "angle", "bg", "cex", "col", "color",
   "colour", "fg", "fill", "group", "hjust", "label", "linetype", "lower",
@@ -34,6 +35,12 @@ class Mapping(Component):
 
     def __init__(self, **kwargs):
         super(Mapping, self).__init__(**kwargs)
+
+    def map(self, data):
+        nd = {}
+        for key, value in self.items():
+            nd[key] = data[value]
+        return pd.DataFrame(nd)
 
 
 def aes(x=None, y=None, **kwargs):
