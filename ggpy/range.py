@@ -1,4 +1,7 @@
 
+from ._scales.ranges import train_continuous, train_discrete
+
+
 class Range(object):
 
     def __init__(self):
@@ -17,7 +20,7 @@ class RangeDiscrete(Range):
         Range.__init__(self)
 
     def train(self, x, drop=False):
-        pass
+        self.range = train_continuous(x, self.range, drop=drop)
 
 
 class RangeContinuous(Range):
@@ -26,4 +29,4 @@ class RangeContinuous(Range):
         Range.__init__(self)
 
     def train(self, x, drop=False):
-        pass
+        self.range = train_continuous(x, self.range)
