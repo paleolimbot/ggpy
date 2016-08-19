@@ -291,6 +291,9 @@ class ScaleDiscrete(Scale):
         else:
             labels = self.get_labels(major)
             major = self.map(major)
+            if len(major) > 0:
+                major = major[~is_nan(major)]
+                labels = labels[~is_nan(major)]
             major_n = np.repeat(NA, len(major)) if range is None else rescale(major, from_=range)
 
         return {'range': range, 'labels': labels, 'major': major_n,
