@@ -5,6 +5,7 @@ from .range import Range, RangeContinuous, RangeDiscrete
 from .utilities import Waiver
 from ._scales.ranges import rescale, censor, expand_range, zero_range
 from ._scales.trans import TransIdentity
+from ._scales.palette import PaletteDiscrete
 import numpy as np
 import copy
 
@@ -25,8 +26,8 @@ class Scale(object):
         self.guide = guide
         self.trans = trans
 
-    def palette(self, x=()):
-        raise NotImplementedError("")
+    def palette(self, x=np.array((0,))):
+        raise NotImplementedError()
 
     def is_discrete(self):
         raise NotImplementedError()
@@ -129,7 +130,7 @@ class ScaleContinuous(Scale):
         x = self.oob(self.rescaler(x, from_=limits))
         uniq = np.unique(x)
         pal = self.palette(uniq)
-        scaled = pal[[int(np.argwhere(v == uniq)) for v in x]]
+        scaled = [pal[int(np.argwhere(v == uniq))] for v in x]
         scaled[is_nan(x)] = self.na_value
         return scaled
 
@@ -213,6 +214,12 @@ class ScaleDiscrete(Scale):
                        expand=expand, guide=guide, range=range)
         self.drop = drop
 
+    def palette(self, x=0):
+        return PaletteDiscrete(n=x, na_value=self.na_value)
+
+    def is_emtpy(self):
+        return len(self.range.range) == 0 and self.limits is not None and len(self.limits) == 0
+
     def is_discrete(self):
         return True
 
@@ -227,10 +234,10 @@ class ScaleDiscrete(Scale):
     def map(self, x, limits=None):
         if limits is None:
             limits = self.get_limits()
+        limits = np.array(limits)
         n = np.sum(~is_nan(limits))
         pal = self.palette(n)
-        pal_match = pal[[int(np.argwhere(v == limits)) for v in x]]
-        pal_match[is_nan(pal_match)] = self.na_value
+        pal_match = np.array([pal[int(np.argwhere(v == limits))] for v in x])
         return pal_match
 
     def dimension(self, expand=(0, 0)):
@@ -279,25 +286,19 @@ class ScaleDiscrete(Scale):
     def break_info(self, range=None):
         limits = self.get_limits()
         major = self.get_breaks(limits)
-        if major is None:
+        if len(major) == 0:
             labels = major_n = np.array(())
         else:
             labels = self.get_labels(major)
             major = self.map(major)
-            major = major[~is_nan(major)]
-            major_n = rescale(major, from_=range)
+            major_n = np.repeat(NA, len(major)) if range is None else rescale(major, from_=range)
 
         return {'range': range, 'labels': labels, 'major': major_n,
                 'major_source': major}
 
     def __repr__(self):  # is 'print' in ggproto
-        pass
+        return "<%s>\n  Range: %s\n  Limits: %s\n  Breaks: %s" % \
+               (type(self), self.range.range, self.get_limits(), self.break_info())
 
 
-if __name__ == '__main__':
-    sc = ScaleContinuous()
-    print(sc)
-    import pandas as pd
-    a = pd.DataFrame({'a': (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 'b': (0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1)})
-    sc.train(a.a)
-    print(sc)
+

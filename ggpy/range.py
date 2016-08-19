@@ -19,6 +19,7 @@ class RangeDiscrete(Range):
 
     def __init__(self):
         Range.__init__(self)
+        self.range = ()
 
     def reset(self):
         self.range = ()
