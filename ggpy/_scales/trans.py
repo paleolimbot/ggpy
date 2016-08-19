@@ -21,7 +21,7 @@ class Trans(object):
         raise NotImplementedError()
 
 
-class IdentityTrans(Trans):
+class TransIdentity(Trans):
 
     def __init__(self):
         Trans.__init__(self)
@@ -33,7 +33,7 @@ class IdentityTrans(Trans):
         return x
 
 
-class Log10Trans(Trans):
+class TransLog10(Trans):
 
     def __init__(self):
         Trans.__init__(self)

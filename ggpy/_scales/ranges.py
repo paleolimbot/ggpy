@@ -1,6 +1,6 @@
 
 import numpy as np
-from .._na import NA
+from .._na import NA, is_nan, NA_character_
 
 
 def expand_range(range, mul=0, add=0, zero_width=1):
@@ -38,4 +38,17 @@ def train_continuous(new, existing=tuple()):
 
 
 def train_discrete(new, old, drop=False):
-    return list(sorted(set(np.concatenate((new, old)))))  # not great for factors but works for now
+    try:
+        hasna = any(is_nan(new))
+        if drop:
+            newarr = np.array(new)
+            new = np.array([cat for cat in new.cat.categories if cat not in old and cat in newarr])
+        else:
+            new = np.array([cat for cat in new.cat.categories if cat not in old])
+        if hasna:
+            new = np.concatenate((new, (NA_character_, )))
+    except AttributeError:
+        new = np.array((sorted(set(new).difference(set(old)))))
+
+    return new
+

@@ -1,5 +1,6 @@
 
 from ._scales.ranges import train_continuous, train_discrete
+from ._na import NA
 
 
 class Range(object):
@@ -19,14 +20,21 @@ class RangeDiscrete(Range):
     def __init__(self):
         Range.__init__(self)
 
+    def reset(self):
+        self.range = ()
+
     def train(self, x, drop=False):
-        self.range = train_continuous(x, self.range, drop=drop)
+        self.range = train_discrete(x, self.range, drop=drop)
 
 
 class RangeContinuous(Range):
 
     def __init__(self):
         Range.__init__(self)
+        self.range = (NA, NA)
+
+    def reset(self):
+        self.range = (NA, NA)
 
     def train(self, x, drop=False):
         self.range = train_continuous(x, self.range)
