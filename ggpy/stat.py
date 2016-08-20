@@ -1,5 +1,7 @@
 
 from .aes import aes
+import numpy as np
+from .utilities import check_required_aesthetics
 
 
 class Stat(object):
@@ -18,7 +20,10 @@ class Stat(object):
         return data
 
     def compute_layer(self, data, params, panels):
-        pass
+        check_required_aesthetics(self.required_aes,
+                                  np.concatenate((params.keys(), data.columns)),
+                                  type(self).__name__)
+
 
     def compute_panel(self, data, scales):
         pass
