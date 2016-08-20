@@ -1,6 +1,7 @@
 
 import warnings
 import numpy as np
+import pandas as pd
 
 from ._na import is_nan, is_finite
 
@@ -41,8 +42,15 @@ def complete_cases(df):
     return np.array([all(~is_nan(df.iloc[i, ])) for i in range(len(df))], dtype=bool)
 
 
+def rbind_fill(*args):
+    if len(args) == 0:
+        return pd.DataFrame()
+    df = pd.DataFrame(args[0])
+    for i in range(1, len(args)):
+        df = df.append(args[i], ignore_index=True)
+    return df
+
+
 def warning_wrap(*args):
     msg = "".join([str(arg) for arg in args])
     warnings.warn(msg)
-
-
