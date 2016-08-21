@@ -1,5 +1,5 @@
 
 
 def alpha(col, alpha):
-    pass
+    return col
 

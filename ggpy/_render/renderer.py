@@ -13,6 +13,9 @@ class Renderer(object):
     def render_png(self, grob):
         raise NotImplementedError()
 
+    def render_svg(self, grob):
+        raise NotImplementedError()
+
     def render_grob(self, grob):
         ty = type(grob)
         if ty == GTree:
@@ -21,7 +24,7 @@ class Renderer(object):
         elif ty == ZeroGrob:
             self.render_zero(grob)
         elif ty == TextGrob:
-            self.render_title(grob)
+            self.render_text(grob)
         elif ty == RectGrob:
             self.render_rect(grob)
         elif ty == PolylineGrob:
@@ -31,7 +34,7 @@ class Renderer(object):
         else:
             raise NotImplementedError("Don't know how to render a %s" % type(grob).__name__)
 
-    def render_title(self, grob):
+    def render_text(self, grob):
         raise NotImplementedError()
 
     def render_rect(self, grob):

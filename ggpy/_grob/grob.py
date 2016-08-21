@@ -2,6 +2,9 @@
 from .._component import Component
 import numpy as np
 import tkinter.font as font
+import tkinter as tk
+
+_tkroot = tk.Tk()
 
 _pt = 72.27 / 25.4
 _stroke = 96 / 25.4
@@ -47,10 +50,12 @@ class GTree(Grob):
         self.name = name
 
     def range_x(self):
-        pass
+        xmin, xmax = zip(*[child.range_x() for child in self.children])
+        return min(xmin), max(xmax)
 
     def range_y(self):
-        pass
+        ymin, ymax = zip(*[child.range_y() for child in self.children])
+        return min(ymin), max(ymax)
 
 class ZeroGrob(Grob):
 
@@ -122,10 +127,11 @@ class TextGrob(Grob):
         self.vjust = vjust
         self.angle = angle
         self.gp = gp
+        self.gp['fontsize'] = round(self.gp['fontsize']) # Tk doesn't do non int fonts
         self.expand_x = expand_x
         self.expand_y = expand_y
         # need fonts for measuring
-        self._tkfont = font.Font(family=gp['family'], size=gp['fontsize'])
+        self._tkfont = font.Font(family=gp['fontfamily'], size=gp['fontsize'])
         self._width = self._height = None
         self._measure()
 

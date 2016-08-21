@@ -5,7 +5,7 @@ from .theme import theme
 from .theme_elements import element_blank, element_line, element_rect, element_text, Rel
 
 
-def theme_grey (base_size=11, base_family=""):
+def theme_grey (base_size=11, base_family='Arial'):
    half_line=base_size / 2
 
    # Elements in this first block aren't used directly, but are inherited
