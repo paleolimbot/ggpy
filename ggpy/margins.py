@@ -1,5 +1,5 @@
 
-from .unit import Unit
+from ggpy._grob.unit import Unit
 
 
 class Margin(Unit):

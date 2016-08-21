@@ -1,9 +1,8 @@
-
+from ggpy._grob.unit import Unit
 from ._na import NA
-from .theme_elements import element_blank, element_line, element_rect, element_text, Rel
-from .theme import theme
-from .unit import Unit
 from .margins import Margin
+from .theme import theme
+from .theme_elements import element_blank, element_line, element_rect, element_text, Rel
 
 
 def theme_grey (base_size=11, base_family=""):

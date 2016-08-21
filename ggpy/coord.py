@@ -5,7 +5,7 @@ class Coord(object):
         pass
 
     def aspect(self, ranges):
-        pass
+        return None
 
     def labels(self, scale_details):
         return scale_details

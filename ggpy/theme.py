@@ -21,6 +21,9 @@ class Theme(Component):
         else:
             return item
 
+    def render_element(self, element_name, **kwargs):
+        return self.element(element_name).render(**kwargs)
+
     def _combine_items(self, item1, item2):
         if isinstance(item1, Element) and isinstance(item2, Element):
             return item1 + item2
