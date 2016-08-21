@@ -5,6 +5,7 @@ from .._na import is_nan
 from .._grob.unit import Unit
 
 _gp_aliases = {'lwd': 'stroke-width',
+               'lty': 'linetype',
                'lineend': 'stroke-linecap',
                'fontsize': 'font-size',
                'col': 'stroke',
@@ -49,19 +50,30 @@ class SVGRenderer(Renderer):
     def __init__(self):
         Renderer.__init__(self)
         self.dwg = None
+        self._height = None
+        self._width = None
+
+    def convertx(self, x, unitfrom=None):
+        return x
+
+    def converty(self, y, unitfrom=None):
+        return self._height - y
 
     def render_svg(self, grob):
         self.dwg = svg.Drawing(filename=None, debug=False)
-        self.dwg['viewBox'] = '0 0 %s %s' % (grob.width()+1, grob.height()+1)
-        self.dwg['width'] = grob.width() + 1
-        self.dwg['height'] = grob.height() + 1
+        # assumes zero based coordinates
+        self._height = grob.range_y()[1]
+        self._width = grob.range_x()[1]
+        self.dwg['viewBox'] = '0 0 %s %s' % (self._width, self._height)
+        self.dwg['width'] = self._width
+        self.dwg['height'] = self._height
 
         # seems to always be added by ggplot in R for some reason
         self.dwg.add(self.dwg.style("line, polyline, path, rect, circle {fill: none; stroke: #000000; " +
                                     "stroke-linecap: round; stroke-linejoin: round; stroke-miterlimit: 10.00; }"))
 
         # need a background rect often
-        self.dwg.add(self.dwg.rect((0, 0), ('100%', '100%'), fill="#FFFFFF", stroke='none'))
+        self.dwg.add(self.dwg.rect((0, 0), ('100%', '100%'), fill="#FFFFFF", stroke='#FFFFFF'))
 
         # render the grob (should be recursive)
         self.render_grob(grob)
@@ -73,24 +85,26 @@ class SVGRenderer(Renderer):
         gp = _rename_gp(grob.gp)
         transform = []
         if grob.hjust != 0 or grob.vjust != 0:
-            transform.append('translate(%s, %s)' % (-grob.hjust * grob.width(), -grob.vjust * grob.height()))
+            transform.append('translate(%s, %s)' % (-grob.hjust * grob.width(), grob.vjust * grob.height()))
         if grob.angle != 0:
             transform.append('rotate(%f)' % grob.angle)
 
-        t = self.dwg.text(grob.label, insert=(grob.x, grob.y))
+        t = self.dwg.text(grob.label, insert=(grob.x, self.converty(grob.y)))
         if transform:
             t['transform'] = ' '.join(transform)
+        gp['color'] = gp['stroke']
+        gp['stroke'] = 'none'
         t['style'] = _gp_to_style(gp)
         self.dwg.add(t)
 
     def render_polyline(self, grob):
-        p = self.dwg.polyline(points=list(zip(grob.x, grob.y)))
+        p = self.dwg.polyline(points=list(zip(grob.x, [self.converty(y) for y in grob.y])))
         gp = _rename_gp(grob.gp)
         p['style'] = _gp_to_style(gp)
         self.dwg.add(p)
 
     def render_rect(self, grob):
-        r = self.dwg.rect(insert=(grob.x, grob.y), size=(grob.width(), grob.height()))
+        r = self.dwg.rect(insert=(grob.x, self.converty(grob.y)-grob.height()), size=(grob.width(), grob.height()))
         gp = _rename_gp(grob.gp)
         r['style'] = _gp_to_style(gp)
         self.dwg.add(r)

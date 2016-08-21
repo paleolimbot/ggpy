@@ -5,6 +5,7 @@ import tkinter.font as font
 import tkinter as tk
 
 _tkroot = tk.Tk()
+_tkdpi = _tkroot.winfo_screenwidth() / (_tkroot.winfo_screenmmwidth() / 25.4)
 
 _pt = 72.27 / 25.4
 _stroke = 96 / 25.4
@@ -136,8 +137,8 @@ class TextGrob(Grob):
         self._measure()
 
     def _measure(self):
-        # probably need to correct for DPI...
-        self._width, self._height = self._tkfont.measure(self.label), self._tkfont.metrics('linespace')
+        dpi = _tkdpi / 60.0
+        self._width, self._height = self._tkfont.measure(self.label) * dpi, self._tkfont.metrics('linespace') * dpi
 
     def height(self):
         return self._height
