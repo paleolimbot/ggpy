@@ -11,19 +11,19 @@ class Coord(object):
         return scale_details
 
     def render_fg(self, scale_details, theme):
-        pass
+        return theme.render_element('panel_border')
 
     def render_bg(self, scale_details, theme):
-        pass
+        pass  # TODO need guide_grid() first
 
     def render_axis_h(self, scale_details, theme):
-        pass
+        pass  # TODO need guide_axis() first
 
     def render_axis_v(self, scale_details, theme):
-        pass
+        pass  # TODO need guide_axis() first
 
     def range(self, scale_details):
-        pass
+        return {'x': scale_details['x_range'], 'y': scale_details['y_range']}
 
     def train(self, scale_details):
         pass

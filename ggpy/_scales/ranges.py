@@ -30,6 +30,13 @@ def censor(x, range=(0, 1), only_finite=True):
     return x
 
 
+def squish_infinite(x, range=(0, 1)):
+    x = np.array(x)
+    x[np.isneginf(x)] = range[0]
+    x[np.isposinf(x)] = range[1]
+    return x
+
+
 def train_continuous(new, existing=tuple()):
     if new is None:
         return existing

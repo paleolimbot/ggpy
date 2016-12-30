@@ -47,3 +47,12 @@ def aes(x=None, y=None, **kwargs):
     kwargs["x"] = x
     kwargs["y"] = y
     return _rename_aes(kwargs)
+
+
+def aes_to_scale(var):
+    return ["x" if var in ("x", "xmin", "xmax", "xend", "xintercept") else v for v in var]
+
+
+def is_position_aes(vars):
+    scales = aes_to_scale(vars)
+    return [s in ("x", "y") for s in scales]
