@@ -305,4 +305,17 @@ class ScaleDiscrete(Scale):
                (type(self), self.range.range, self.get_limits(), self.break_info())
 
 
+# from: https://rpubs.com/wch/124655 (unknown source in package)
+def scale_apply(data, variables, method, scale_id, scales):
+    if len(variables) == 0:
+        return
+    if len(data) == 0:
+        return
+    if any(is_nan(scale_id)):
+        raise ValueError("NA scale ID in scale_apply()")
 
+    pieces = []
+    for var in variables:
+        pieces.append([getattr(scales[i], method)(data[var][scale_id == i]) for i in len(scales)])
+    # flatten to return
+    return [item for sublist in pieces for item in sublist]
