@@ -14,12 +14,40 @@ class GTable(object):
     def add_row(self, height, pos=-1):
         if pos != -1:
             self.heights.insert(height, pos)
+            # update t and b where row >= pos
+            newels = {}
+            for key, value in self.els.items():
+                if key[0] >= pos:
+                    key = (key[0]+1, key[1])
+                if value["t"] >= pos:
+                    value["t"] += 1
+                if value["b"] >= pos:
+                    value["b"] += 1
+                newels[key] = value
+            self.els = newels
         else:
             self.heights.append(height)
+
+    def nrows(self):
+        return len(self.heights)
+
+    def ncols(self):
+        return len(self.widths)
 
     def add_col(self, width, pos=-1):
         if pos != -1:
             self.widths.insert(width, pos)
+            # update r and l where col >= pos
+            newels = {}
+            for key, value in self.els.items():
+                if key[1] >= pos:
+                    key = (key[0], key[1]+1)
+                if value["l"] >= pos:
+                    value["l"] += 1
+                if value["r"] >= pos:
+                    value["r"] += 1
+                newels[key] = value
+            self.els = newels
         else:
             self.widths.append(width)
 

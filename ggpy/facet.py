@@ -65,8 +65,29 @@ class Facet(object):
         raise NotImplementedError()
 
     def draw_labels(self, panels, layout, x_scales, y_scales, ranges, coord, data, theme, labels, params):
-        # todo: lots of gtable calls here (facet-.r) not implementing yet
-        return [ZeroGrob(), ] * len(set(layout["PANEL"]))
+        # it looks like the GTable panels is created by draw_panels and modified by this function
+
+        xlab_height_top = labels["x"][0].height()
+        panels.add_row(xlab_height_top, 0)
+        panels.add_grob(labels["x"][0], l=-1, t=0, r=panels.ncol()-1, b=0,
+                        clip="off", name="xlab-t")
+
+        xlab_height_bottom = labels["x"][1].height()
+        panels.add_row(xlab_height_bottom)
+        panels.add_grob(labels["x"][1], l=-1, t=panels.nrow()-1, r=panels.ncol()-1, b=panels.nrow()-1,
+                        clip="off", name="xlab-b")
+
+        ylab_width_left = labels["y"][0].width()
+        panels.add_col(ylab_width_left, 0)
+        panels.add_grob(labels["y"][0], l=0, t=0, r=0, b=panels.nrow(),
+                        clip="off", name="ylab-l")
+
+        ylab_width_right = labels["y"][1].width()
+        panels.add_col(ylab_width_right)
+        panels.add_grob(labels["y"][1], l=panels.ncol()-1, t=0, r=panels.ncol()-1, b=panels.nrow(),
+                        clip="off", name="ylab-r")
+
+        return panels
 
     def setup_params(self, data, params):
         return params
