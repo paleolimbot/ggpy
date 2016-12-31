@@ -21,4 +21,4 @@ class GeomPoint(Geom):
                           gp=gpar(col=alpha(coords['col'], coords['alpha']),
                                   fill=alpha(coords['fill'], coords['alpha']),
                                   fontsize=coords['size'] + coords['stroke'],  # sizes here are up for grabs
-                                  lwd = coords['stroke']))
+                                  lwd=coords['stroke']))
