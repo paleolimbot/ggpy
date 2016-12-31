@@ -7,8 +7,8 @@ class GTable(object):
     def __init__(self, widths=None, heights=None, respect=False, name="layout"):
         self.name = name
         self.els = {}
-        self.widths = [] if widths is None else list(widths)
-        self.heights = [] if heights is None else list(heights)
+        self.widths = [] if widths is None else widths
+        self.heights = [] if heights is None else heights
         self.respect = respect
 
     def add_row(self, height, pos=-1):

@@ -46,7 +46,7 @@ class FacetNull(Facet):
         clip = [["off", "off", "off"],
                 ["off", "off", "off"],
                 ["off", "off", "off"]]
-        layout = GTable("layout", grb, names=names, widths=widths,
+        layout = GTable.matrix("layout", grb, names=names, widths=widths,
                         heights=heights, respect=respect, clip=clip, z=z)
         return layout
 
