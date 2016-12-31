@@ -1,5 +1,4 @@
 
-from .aes import aes
 from ._na import NA, is_nan, NA_character_
 from .range import Range, RangeContinuous, RangeDiscrete
 from .utilities import Waiver
@@ -14,7 +13,7 @@ class Scale(object):
 
     def __init__(self, aesthetics=None, scale_name=None, range=None, limits=None, na_value=NA, expand=Waiver(),
                  name=Waiver(), breaks=Waiver(), labels=Waiver(), guide="legend", trans=None):
-        self.aesthetics = aes() if aesthetics is None else aesthetics
+        self.aesthetics = () if aesthetics is None else aesthetics
         self.scale_name = scale_name
         self.range = Range() if range is None else range
         self.limits = limits
@@ -50,21 +49,26 @@ class Scale(object):
 
     def transform_df(self, df):
         if len(df) == 0:
-            return []
+            return df
         aesthetics = set(self.aesthetics.values()).intersection(set(df.columns))
-        return [self.transform(df[col]) for col in aesthetics]
+        # modify df in place
+        for col in aesthetics:
+            df[col] = self.transform(df[col])
+        return df
 
     def transform(self, x):
         raise NotImplementedError()
 
     def map_df(self, df, i=None):
         if len(df) == 0:
-            return []
+            return df
         aesthetics = set(self.aesthetics.values()).intersection(set(df.columns))
-        if i is None:
-            return [self.map(df[col]) for col in aesthetics]
-        else:
-            return [self.map(df[col][i]) for col in aesthetics]
+        if i is not None:
+            df = df.iloc[i]  # subset the data frame
+        # if the data frame is not subsetted it is modified in place
+        for col in aesthetics:
+            df[col] = self.map(df[col])
+        return df
 
     def map(self, x):
         raise NotImplementedError()
@@ -103,10 +107,13 @@ class Scale(object):
 
 class ScaleContinuous(Scale):
 
-    def __init__(self, range=None, na_value=NA, trans=TransIdentity(), rescaler=rescale, oob=censor,
+    def __init__(self, aesthetics=None, scale_name=None, range=None, limits=None, na_value=NA,
+                 expand=Waiver(), name=Waiver(), breaks=Waiver(), labels=Waiver(), guide="legend",
+                 trans=TransIdentity(), rescaler=rescale, oob=censor,
                  minor_breaks=Waiver()):
         range = RangeContinuous() if range is None else range
-        Scale.__init__(self, range=range, na_value=na_value, trans=trans)
+        Scale.__init__(self, aesthetics=aesthetics, range=range, na_value=na_value, trans=trans, limits=limits,
+                       expand=expand, name=name, breaks=breaks, labels=labels, guide=guide, scale_name=scale_name)
         self.rescaler = rescaler
         self.oob = oob
         self.minor_breaks = minor_breaks
@@ -235,11 +242,12 @@ class ScaleContinuous(Scale):
 
 class ScaleDiscrete(Scale):
 
-    def __init__(self, drop=True, range=None, na_value=NA_character_, name=Waiver(), breaks=Waiver(),
-                 labels=Waiver(), limits=None, expand=Waiver(), guide="legend"):
+    def __init__(self, aesthetics=None, scale_name=None, drop=True, range=None, limits=None, na_value=NA_character_,
+                 expand=Waiver(), name=Waiver(), breaks=Waiver(),
+                 labels=Waiver(), guide="legend"):
         range = RangeDiscrete() if range is None else range
         Scale.__init__(self, na_value=na_value, name=name, breaks=breaks, labels=labels, limits=limits,
-                       expand=expand, guide=guide, range=range)
+                       expand=expand, guide=guide, range=range, aesthetics=aesthetics, scale_name=scale_name)
         self.drop = drop
 
     def palette(self, x=0):
@@ -332,6 +340,9 @@ class ScaleDiscrete(Scale):
         return "<%s>\n  Range: %s\n  Limits: %s\n  Breaks: %s" % \
                (type(self), self.range.range, self.get_limits(), self.break_info())
 
+# these aesthetics get used in a few places
+aesthetics_x = ("x", "xmin", "xmax", "xend", "xintercept", "xmin_final", "xmax_final", "xlower", "xmiddle", "xupper")
+aesthetics_y = ("y", "ymin", "ymax", "yend", "yintercept", "ymin_final", "ymax_final", "lower", "middle", "upper")
 
 # from: https://rpubs.com/wch/124655 (unknown source in package)
 def scale_apply(data, variables, method, scale_id, scales):
