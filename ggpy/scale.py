@@ -86,7 +86,7 @@ class Scale(object):
     def break_positions(self, range=None):
         if range is None:
             range = self.get_limits()
-        self.map(self.get_breaks(range))
+        return self.map(self.get_breaks(range))
 
     def get_breaks_minor(self, n=2, b=None, limits=None):
         raise NotImplementedError()
@@ -160,8 +160,36 @@ class ScaleContinuous(Scale):
         return breaks
 
     def get_breaks_minor(self, n=2, b=None, limits=None):
-        # TODO not dealing with this yet
-        return np.array(())
+        if b is None:
+            b = self.break_positions()
+        if limits is None:
+            limits = self.get_limits()
+        if zero_range(limits):
+            return np.array(())
+
+        if self.minor_breaks is None:
+            return np.array(())
+        elif is_nan(self.minor_breaks):
+            raise ValueError("Use None to specify no minor breaks")
+        elif isinstance(self.minor_breaks, Waiver):
+            if b is None:
+                return np.array(())
+            b = b[~is_nan(b)]
+            if len(b) < 2:
+                return np.array(())
+            bd = np.diff(b)[0]
+            if np.min(limits) < np.min(b):
+                b = np.concatenate(b[0] - bd, b)
+            if np.max(limits) > np.max(b):
+                b = np.concatenate(b, b[len(b)-1] + bd)
+            breaks = [(b[i-1]+b[i])/2 for i in range(1, len(b))]
+        elif callable(self.minor_breaks):
+            breaks = self.minor_breaks(self.trans.inverse(limits))
+            breaks = self.trans.transform(breaks)
+        else:
+            breaks = self.trans.transform(self.minor_breaks)
+
+        return np.array([br for br in breaks if limits[0] <= br <= limits[1]])
 
     def get_labels(self, breaks=None):
         if self.labels is None:
