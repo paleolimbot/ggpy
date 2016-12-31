@@ -38,5 +38,4 @@ class Theme(Component):
                 ", ".join(["%s='%s'" % (key, value) for key, value in self.items()]))
 
 
-def theme(**kwargs):
-    return Theme(**kwargs)
+# todo: there needs to be a better definition of inheritance here as there is in theme.R
