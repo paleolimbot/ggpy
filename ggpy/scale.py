@@ -12,7 +12,7 @@ import copy
 class Scale(object):
 
     def __init__(self, aesthetics=None, scale_name=None, range=None, limits=None, na_value=NA, expand=Waiver(),
-                 name=Waiver(), breaks=Waiver(), labels=Waiver(), guide="legend", trans=None):
+                 name=Waiver(), breaks=Waiver(), labels=Waiver(), guide="legend", trans=None, palette=None):
         self.aesthetics = () if aesthetics is None else aesthetics
         self.scale_name = scale_name
         self.range = Range() if range is None else range
@@ -24,8 +24,9 @@ class Scale(object):
         self.labels = labels
         self.guide = guide
         self.trans = trans
+        self.palette = self.default_palette() if palette is not None else palette
 
-    def palette(self, x=np.array((0,))):
+    def default_palette(self):
         raise NotImplementedError()
 
     def is_discrete(self):
@@ -104,19 +105,26 @@ class Scale(object):
     def break_info(self, range=None):
         raise NotImplementedError()
 
+    def make_sec_title(self, title):
+        return title
+
 
 class ScaleContinuous(Scale):
 
     def __init__(self, aesthetics=None, scale_name=None, range=None, limits=None, na_value=NA,
                  expand=Waiver(), name=Waiver(), breaks=Waiver(), labels=Waiver(), guide="legend",
-                 trans=TransIdentity(), rescaler=rescale, oob=censor,
+                 trans=TransIdentity(), rescaler=rescale, oob=censor, palette=None,
                  minor_breaks=Waiver()):
         range = RangeContinuous() if range is None else range
         Scale.__init__(self, aesthetics=aesthetics, range=range, na_value=na_value, trans=trans, limits=limits,
-                       expand=expand, name=name, breaks=breaks, labels=labels, guide=guide, scale_name=scale_name)
+                       expand=expand, name=name, breaks=breaks, labels=labels, guide=guide, scale_name=scale_name,
+                       palette=palette)
         self.rescaler = rescaler
         self.oob = oob
         self.minor_breaks = minor_breaks
+
+    def default_palette(self):
+        return None
 
     def is_emtpy(self):
         return all(np.isnan(self.range.range)) or (self.limits is not None and all(np.isnan(self.limits)))
@@ -243,15 +251,16 @@ class ScaleContinuous(Scale):
 class ScaleDiscrete(Scale):
 
     def __init__(self, aesthetics=None, scale_name=None, drop=True, range=None, limits=None, na_value=NA_character_,
-                 expand=Waiver(), name=Waiver(), breaks=Waiver(),
+                 expand=Waiver(), name=Waiver(), breaks=Waiver(), palette=None,
                  labels=Waiver(), guide="legend"):
         range = RangeDiscrete() if range is None else range
         Scale.__init__(self, na_value=na_value, name=name, breaks=breaks, labels=labels, limits=limits,
-                       expand=expand, guide=guide, range=range, aesthetics=aesthetics, scale_name=scale_name)
+                       expand=expand, guide=guide, range=range, aesthetics=aesthetics, scale_name=scale_name,
+                       palette=palette)
         self.drop = drop
 
-    def palette(self, x=0):
-        return PaletteDiscrete(n=x, na_value=self.na_value)
+    def default_palette(self, x=0):
+        return lambda n: PaletteDiscrete(n=n, na_value=self.na_value)
 
     def is_emtpy(self):
         return len(self.range.range) == 0 and self.limits is not None and len(self.limits) == 0
