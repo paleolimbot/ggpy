@@ -1,6 +1,6 @@
 
 from ._component import Component
-from .aes import _rename_aes, is_function_aes
+from .aes import rename_aes, is_function_aes
 from .aes_calculated import is_calculated_aes, strip_dots
 
 
@@ -11,7 +11,7 @@ class Labels(Component):
 
 
 def labs(**kwargs):
-    return Labels(**_rename_aes(kwargs))
+    return Labels(**rename_aes(kwargs))
 
 
 def make_labels(mapping):

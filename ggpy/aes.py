@@ -37,7 +37,7 @@ def is_function_aes(expr):
     except TypeError:
         return False
 
-def _rename_aes(dct):
+def rename_aes(dct):
     nd = {}
     for key, value in dct.items():
         nd[_base_to_ggplot[key] if key in _base_to_ggplot else key] = value
@@ -79,7 +79,7 @@ class Mapping(Component):
 def aes(x=None, y=None, **kwargs):
     kwargs["x"] = x
     kwargs["y"] = y
-    return Mapping(**_rename_aes(kwargs))
+    return Mapping(**rename_aes(kwargs))
 
 
 def aes_to_scale(var):
