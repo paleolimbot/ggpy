@@ -1,6 +1,8 @@
 
 from .range import RangeContinuous
 from .scale import ScaleDiscrete, aesthetics_x, aesthetics_y
+from ._scales.ranges import expand_range
+import numpy as np
 
 
 def scale_x_continuous(**kwargs):
@@ -53,30 +55,47 @@ class ScaleDiscretePosition(ScaleDiscrete):
             return ()
 
     def is_emtpy(self):
-        # todo: stub
-        pass
+        return self.range.range is None and self.limits is None and self.range_c.range is None
 
     def reset(self):
-        # todo: stub
-        pass
+        # Can't reset discrete scale because no way to recover values
+        self.range_c.reset()
 
     def map(self, x, limits=None):
         if limits is None:
             limits = self.get_limits()
-        # todo: stub
-        pass
+        if is_discrete(x):
+            limits = list(limits)
+            na = self.na_value
+            return np.array([limits.index(e) if e in limits else na for e in x])
+        else:
+            return x
 
     def dimension(self, expand=(0, 0)):
-        # todo: stub
-        pass
+        c_range = self.range_c.range
+        d_range = self.get_limits()
+
+        if self.is_emtpy():
+            return 0, 1
+        elif self.range.range is None:
+            # only continuous
+            return expand_range(c_range, expand[0], expand[1], 1)
+        elif c_range is None:
+            # only discrete
+            return expand_range((1, len(d_range)), expand[0], expand[1], 1)
+        else:
+            # both
+            both = np.concatenate(expand_range(c_range, expand[0], 0, 1),
+                                  expand_range((1, len(d_range), 0, expand[1], 1)))
+            return np.nanmin(both), np.nanmax(both)
 
     def get_breaks(self, limits=None):
         if limits is None:
             limits = self.get_limits()
-        # todo: stub
-        pass
+        # this is identical to the super method, not sure why it is 'overridden' in scale_discrete.R
+        return ScaleDiscrete.get_breaks(self, limits)
 
     def clone(self):
-        # todo: stub
-        pass
-
+        # this is the same as the super method, which uses deepcopy to copy the scale
+        # this should be sufficient to the implementation in scale_discrete.R
+        return ScaleDiscrete.clone(self)
