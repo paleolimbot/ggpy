@@ -145,8 +145,7 @@ class Layer(object):
         return self.geom.use_defaults(data, self.aes_params)
 
     def finish_statistics(self, data):
-        self.stat.finish_layer(data)
-        pass
+        return self.stat.finish_layer(data)
 
     def draw_geom(self, data, layout, coord):
         if len(data) == 0:

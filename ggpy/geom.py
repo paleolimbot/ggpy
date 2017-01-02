@@ -55,7 +55,7 @@ class Geom(object):
             for key, value in self.default_aes.items():
                 if key in missing:
                     cols[key] = value
-            data = pd.DataFrame(cols) # returns data frame of length 1?
+            data = pd.DataFrame(cols)  # returns data frame of length 1?
         else:
             for key, value in self.default_aes.items():
                 if key in missing:
