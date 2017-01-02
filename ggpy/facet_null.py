@@ -14,7 +14,7 @@ class FacetNull(Facet):
     def compute_layout(self, data, params):
         return layout_null()
 
-    def map_data(self, data, params):
+    def map_data(self, data, layout, params):
         if len(data) > 0:
             data["PANEL"] = 1
         else:

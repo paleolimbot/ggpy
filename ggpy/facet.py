@@ -1,5 +1,5 @@
 
-from .scale import scale_apply
+from .layout import scale_apply
 from ._grob.grob import ZeroGrob
 import numpy as np
 import pandas as pd
@@ -11,11 +11,11 @@ class Facet(object):
         self.shrink = shrink
         self.params = {}
 
-    def train(self, data, layout):
-        self.compute_layout(data, layout, self.params)
+    def train(self, data, params):
+        self.compute_layout(data, params)
 
-    def map(self, data, layout):
-        self.map_data(data, layout)
+    def map(self, data, layout, params):
+        self.map_data(data, layout, self.params)
 
     def render_back(self, data, layout, x_scales, y_scales, theme):
         self.draw_front(data, layout, x_scales, y_scales, theme, self.params)
@@ -30,7 +30,7 @@ class Facet(object):
     def compute_layout(self, data, params):
         raise NotImplementedError()
 
-    def map_data(self, data, params):
+    def map_data(self, data, layout, params):
         raise NotImplementedError()
 
     def init_scales(self, layout, x_scale=None, y_scale=None, params=None):
