@@ -147,8 +147,8 @@ class Layout(object):
         for label in labels.keys():
             labelgrobgrobs = []
             for i in (0, 1):
-                modify = ".right" if (i == 1 and label == "y") else ".top" if (i == 0 and label == "x") else ""
-                deflab = labels["label"][i]
+                modify = ".right" if (i == 1 and label == "y") else ".top" if (i == 1 and label == "x") else ""
+                deflab = labels[label][i]
                 if deflab is None or isinstance(deflab, Waiver):
                     grob = ZeroGrob()
                 else:
