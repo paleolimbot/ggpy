@@ -30,11 +30,18 @@ _base_to_ggplot = {
 match_function_aes = re.compile("^[a-zA-Z._]*?\(([a-zA-Z_]+)\)$")
 
 
+def is_function_aes(expr):
+    try:
+        funmatch = match_function_aes.match(expr)
+        return funmatch is not None
+    except TypeError:
+        return False
+
 def _rename_aes(dct):
     nd = {}
     for key, value in dct.items():
         nd[_base_to_ggplot[key] if key in _base_to_ggplot else key] = value
-    return Mapping(**nd)
+    return nd
 
 
 class Mapping(Component):
@@ -44,13 +51,9 @@ class Mapping(Component):
 
     def map(self, data, key, global_vars=None, local_vars=None):
         val = self[key]
-        try:
-            funmatch = match_function_aes.match(val)
-        except TypeError:
-            funmatch = False
         if val in data.columns:
             return data[val]
-        elif funmatch:
+        elif is_function_aes(val):
             if global_vars is None:
                 global_vars = globals()
             if local_vars is None:
@@ -76,7 +79,7 @@ class Mapping(Component):
 def aes(x=None, y=None, **kwargs):
     kwargs["x"] = x
     kwargs["y"] = y
-    return _rename_aes(kwargs)
+    return Mapping(**_rename_aes(kwargs))
 
 
 def aes_to_scale(var):
