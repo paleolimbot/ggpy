@@ -4,6 +4,7 @@ from .aes_calculated import is_calculated_aes
 from .scale import aesthetics_y, aesthetics_x
 import pandas as pd
 import numpy as np
+import re
 
 _all_aesthetics = ("adj", "alpha", "angle", "bg", "cex", "col", "color",
   "colour", "fg", "fill", "group", "hjust", "label", "linetype", "lower",
@@ -26,6 +27,8 @@ _base_to_ggplot = {
   "max": "ymax"
 }
 
+match_function_aes = re.compile("^[a-zA-Z._]*?\(([a-zA-Z_]+)\)$")
+
 
 def _rename_aes(dct):
     nd = {}
@@ -39,23 +42,34 @@ class Mapping(Component):
     def __init__(self, **kwargs):
         super(Mapping, self).__init__(**kwargs)
 
-    def map(self, data, key):
+    def map(self, data, key, global_vars=None, local_vars=None):
         val = self[key]
-        if is_calculated_aes(val):
-            for col in data.columns:
-                val = val.replace(col, "data['%s']")
-            return eval(val)
-        elif val in data.columns:
+        try:
+            funmatch = match_function_aes.match(val)
+        except TypeError:
+            funmatch = False
+        if val in data.columns:
             return data[val]
+        elif funmatch:
+            if global_vars is None:
+                global_vars = globals()
+            if local_vars is None:
+                local_vars = {}
+            else:
+                local_vars = local_vars.copy()
+            local_vars['__data__'] = data
+            for col in data.columns:
+                val = val.replace("(" + col + ")", "(__data__['%s'])" % col)
+            return eval(val, global_vars, local_vars)
         else:
             return val
 
-    def map_df(self, data):
+    def map_df(self, data, global_vars=None, local_vars=None):
         # copies data frame and returns a dict
         d = {}
         for key, value in self.items():
             # replace columns
-            d[key] = self.map(data, key)
+            d[key] = self.map(data, key, global_vars, local_vars)
         return d
 
 
@@ -80,3 +94,9 @@ def check_aesthetics(df_like, n):
         return
     else:
         raise ValueError("Aesthetics must be scalar or same length as data")
+
+
+def check_required_aesthetics(required, existing, classname):
+    missing = [r for r in required if r not in existing]
+    if missing:
+        raise ValueError("%s is missing the following aesthetics: %s" % (classname, ", ".join(missing)))

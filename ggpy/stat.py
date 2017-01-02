@@ -53,6 +53,9 @@ class Stat(object):
     def parameters(self):
         return ()
 
+    def finish_layer(self, data):
+        return data
+
 
 class StatIdentity(Stat):
 

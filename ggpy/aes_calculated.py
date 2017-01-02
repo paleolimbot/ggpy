@@ -1,7 +1,7 @@
 
 import re
 
-match_calculated_aes = re.compile("^\\.\\.([a-zA-Z._]+)\\.\\.$")
+match_calculated_aes = re.compile("^\\.\\.([a-zA-Z_]+)\\.\\.$")
 
 
 def is_calculated_aes(aesthetic):
@@ -12,3 +12,11 @@ def is_calculated_aes(aesthetic):
 def find_vars(expr):
     # todo: not quite sure what this does
     return [expr, ]
+
+
+def strip_dots(expr):
+    match = match_calculated_aes.match(expr)
+    if match:
+        return match.group(1)
+    else:
+        return expr

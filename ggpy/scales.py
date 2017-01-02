@@ -80,7 +80,7 @@ class ScalesList(object):
             scale.transform_df(df)
         return df
 
-    def add_defaults(self, data, aesthetics):
+    def add_defaults(self, data, aesthetics, global_vars=None, local_vars=None):
         # no concept of an 'env' in Python?
         scalekeys = aes_to_scale(aesthetics.keys())
         newkeys = set(scalekeys).difference(set(self.input()))
@@ -92,7 +92,7 @@ class ScalesList(object):
             # need the original aesthetic values for this
             for scale, aesname in zip(scalekeys, aesthetics.keys()):
                 if scale in newkeys and not self.has_scale(scale):
-                    dtype = aesthetics.map(data, aesname).dtype
+                    dtype = aesthetics.map(data, aesname, global_vars, local_vars).dtype
                     defaultscale = default_scale(str(dtype), scale)
                     if defaultscale is not None:
                         self.add(defaultscale)

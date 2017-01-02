@@ -1,12 +1,13 @@
 
 from .geom import Geom
 from .stat import Stat, StatIdentity
-from .aes import Mapping, aes, check_aesthetics
-from .aes_calculated import is_calculated_aes
+from .aes import Mapping, aes, check_aesthetics, check_required_aesthetics
+from .aes_calculated import is_calculated_aes, strip_dots
 from .position import Position
 from .position_identity import PositionIdentity
 from .utilities import Waiver
 from .grouping import add_group
+from ._grob.grob import ZeroGrob
 
 import pandas as pd
 import numpy as np
@@ -62,7 +63,7 @@ class Layer(object):
             aesthetics["group"] = self.geom_params["group"]
 
         # add default aesthetics
-        plot.scales.add_defaults(data, aesthetics)
+        plot.scales.add_defaults(data, aesthetics, plot.global_vars, plot.local_vars)
 
         # evaluate aesthetics
         evaled = aesthetics.map_df(data)
@@ -86,30 +87,70 @@ class Layer(object):
 
         return add_group(pd.DataFrame(evaled))
 
-    def compute_statistic(self, data, plot):
-        # todo: stub
-        pass
+    def compute_statistic(self, data, layout):
+        if len(data) == 0:
+            return pd.DataFrame()
+        params = self.stat.setup_params(data, self.stat_params)
+        data = self.stat.setup_data(data, params)
+        return self.stat.compute_layer(data, params, layout)
 
     def map_statistic(self, data, plot):
-        # todo: stub
-        pass
+        # this does calculates aesthetics (whatever those are)
+        if len(data) == 0:
+            return pd.DataFrame()
+        aesthetics = self.mapping
+        if self.inherit_aes:
+            aesthetics = plot.mapping + aesthetics
+        aesthetics = self.stat.default_aes + aesthetics
+        newaes = aes()
+        for key in aesthetics.keys():
+            if is_calculated_aes(key):
+                newaes[key] = strip_dots(aesthetics[key])
+        if len(newaes):
+            return data
+        # Add map stat output to aesthetics
+        stat_data = newaes.map_df(data)
+        # add new scales (if necessary)
+        plot.scales.add_defaults(data, newaes, plot.global_vars, plot.local_vars)
+
+        # re-transform
+        if self.stat.retransform:
+            stat_data = plot.scales.transform_df(stat_data)
+
+        # recombine
+        for col in data:
+            if col not in stat_data.columns:
+                stat_data[col] = data[col]
+        return data
 
     def compute_geom_1(self, data):
-        # todo: stub
-        pass
+        if len(data) == 0:
+            return pd.DataFrame()
+        data = self.geom.setup_data(data, self.geom_params + aes(**self.aes_params))
+        check_required_aesthetics(self.geom.required_aes, list(data.columns) + list(self.aes_params.keys()),
+                                  type(self.geom).__name__)
+        return data
 
     def compute_position(self, data, layout):
-        # todo: stub
-        pass
+        if len(data) == 0:
+            return pd.DataFrame()
+        params = self.position.setup_params(data)
+        data = self.position.setup_data(data, params)
+        return self.position.compute_layer(data, params, layout)
 
     def compute_geom_2(self, data):
-        # todo: stub
-        pass
+        # Combine aesthetics, defaults, & params
+        if len(data) == 0:
+            return data  # not sure why this is data and not pd.DataFrame()
+        return self.geom.use_defaults(data, self.aes_params)
 
     def finish_statistics(self, data):
-        # todo: stub
+        self.stat.finish_layer(data)
         pass
 
     def draw_geom(self, data, layout, coord):
-        # todo: stub
-        pass
+        if len(data) == 0:
+            n = len(layout.panel_layout)
+            return [ZeroGrob(), ] * n
+        data = self.geom.handle_na(data, self.geom_params)
+        return self.geom.draw_layer(data, self.geom_params, layout, coord)
