@@ -42,3 +42,6 @@ class CoordCartesian(Coord):
         train_cartesian(out, scale_details, self.limits["x"], "x")
         train_cartesian(out, scale_details, self.limits["y"], "y")
         return out
+
+    def clone(self):
+        return type(self)(xlim=self.limits["x"], ylim=self.limits["y"], expand=self.expand)

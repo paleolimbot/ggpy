@@ -36,3 +36,6 @@ class Coord(object):
 
     def is_linear(self):
         return False
+
+    def clone(self):
+        return type(self)()

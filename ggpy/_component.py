@@ -40,3 +40,6 @@ class Component(dict):
 
     def __repr__(self):
         return "%s(%s)" % (type(self).__name__, ", ".join(["%s='%s'" % (key, value) for key, value in self.items()]))
+
+    def copy(self):
+        return type(self)(**self)

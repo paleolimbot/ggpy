@@ -98,6 +98,11 @@ class Facet(object):
     def finish_data(self, data, layout, x_scales, y_scales, params):
         return data
 
+    def clone(self):
+        newobj = type(self)(shrink=self.shrink)
+        newobj.params = self.params.copy()
+        return newobj
+
 
 def layout_null():
     return pd.DataFrame({"PANEL": [1, ], "ROW": [1,], "COL": [1, ], "SCALE_X": [1, ], "SCALE_Y": [1, ]})

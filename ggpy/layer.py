@@ -35,6 +35,12 @@ class Layer(object):
         self.position = position if position is not None else PositionIdentity()
         self.inherit_aes = inherit_aes
 
+    def clone(self):
+        return type(self)(geom=self.geom, geom_params=self.geom_params.copy(), stat=self.stat,
+                          stat_params=self.stat_params.copy(), data=self.data,
+                          aes_params=self.aes_params.copy(), mapping=self.mapping.copy(),
+                          position=self.position, inherit_aes=self.inherit_aes)
+
     def __repr__(self):
         return "Mapping: %s\nGeom: %s\nStat: %s" % (repr(self.geom), repr(self.stat), repr(self.position))
 
