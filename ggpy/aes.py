@@ -1,8 +1,6 @@
 
 from ._component import Component
-from .aes_calculated import is_calculated_aes
 from .scale import aesthetics_y, aesthetics_x
-import pandas as pd
 import numpy as np
 import re
 

@@ -151,8 +151,6 @@ class ggplot(object):
         if isinstance(other, list):
             for obj in other:
                 newobj.__iadd__(obj)
-        elif False:
-            pass
         else:
-            raise TypeError("Don't know how to add type %s to ggplot" % type(other).__name__)
+            newobj.__iadd__(other)
         return newobj

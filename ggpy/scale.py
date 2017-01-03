@@ -24,7 +24,7 @@ class Scale(object):
         self.labels = labels
         self.guide = guide
         self.trans = trans
-        self.palette = self.default_palette() if palette is not None else palette
+        self.palette = self.default_palette() if palette is None else palette
 
     def default_palette(self):
         raise NotImplementedError()
@@ -184,8 +184,6 @@ class ScaleContinuous(Scale):
 
         if self.minor_breaks is None:
             return np.array(())
-        elif is_nan(self.minor_breaks):
-            raise ValueError("Use None to specify no minor breaks")
         elif isinstance(self.minor_breaks, Waiver):
             if b is None:
                 return np.array(())
@@ -201,6 +199,8 @@ class ScaleContinuous(Scale):
         elif callable(self.minor_breaks):
             breaks = self.minor_breaks(self.trans.inverse(limits))
             breaks = self.trans.transform(breaks)
+        elif is_nan(self.minor_breaks):
+            raise ValueError("Use None to specify no minor breaks")
         else:
             breaks = self.trans.transform(self.minor_breaks)
 
@@ -279,10 +279,13 @@ class ScaleDiscrete(Scale):
     def map(self, x, limits=None):
         if limits is None:
             limits = self.get_limits()
-        limits = np.array(limits)
-        n = np.sum(~is_nan(limits))
+        limits = list(limits)
+        n = np.sum(~is_nan(np.array(limits)))
         pal = self.palette(n)
-        pal_match = np.array([pal[int(np.argwhere(v == limits))] for v in x])
+        # NA may have to be numeric here (or may not), but if it is __NA_character it
+        # forces the type of pal_match to all strings, which when passed to rescale()
+        # forces all major_n to be nan
+        pal_match = np.array([pal[limits.index(v)] if v in limits else NA for v in x])
         return pal_match
 
     def dimension(self, expand=(0, 0)):

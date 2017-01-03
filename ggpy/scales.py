@@ -1,7 +1,7 @@
 
 from .messaging import message_wrap
 from .aes import aes_to_scale
-from .scale_continuous import continous_scale
+from .scale_continuous import continuous_scale
 from .scale_discrete import discrete_scale
 
 import numpy as np
@@ -104,5 +104,5 @@ def default_scale(dtype, aes):
     elif dtype.startswith("<U"):
         return discrete_scale(aes)
     else:
-        return continous_scale(aes)
+        return continuous_scale(aes)
 

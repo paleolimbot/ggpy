@@ -15,8 +15,10 @@ def labs(**kwargs):
 
 
 def make_labels(mapping):
+    if mapping is None:
+        return Labels()
     dlabs = {}
-    for key, value in mapping:
+    for key, value in mapping.items():
         if is_function_aes(value):
             dlabs[key] = value
         elif is_calculated_aes(value):

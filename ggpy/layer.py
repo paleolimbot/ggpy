@@ -42,7 +42,8 @@ class Layer(object):
                           position=self.position, inherit_aes=self.inherit_aes)
 
     def __repr__(self):
-        return "Mapping: %s\nGeom: %s\nStat: %s" % (repr(self.geom), repr(self.stat), repr(self.position))
+        return "Mapping: %s\nGeom: %s\nStat: %s\nPosition: %s" % (repr(self.mapping), repr(self.geom),
+                                                                  repr(self.stat), repr(self.position))
 
     def layer_data(self, plot_data):
         if isinstance(self.data, Waiver):
