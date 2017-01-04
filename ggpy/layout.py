@@ -14,7 +14,7 @@ class Layout(object):
         self.panel_scales = panel_scales if panel_scales is not None else {}
         self.panel_ranges = panel_ranges
 
-    def setup(self, data, plot_data, plot_env, plot_coord):
+    def setup(self, data, plot_data, plot_globals, plot_locals, plot_coord):
         # not sure if this is ncessary
         data = data.copy()
         for col in plot_data:

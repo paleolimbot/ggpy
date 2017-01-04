@@ -39,3 +39,18 @@ class Theme(Component):
 
 
 # todo: there needs to be a better definition of inheritance here as there is in theme.R
+
+# todo: default theme should not be None
+_default_theme = None
+
+
+def set_default_theme(theme):
+    if isinstance(theme, Theme) and theme.complete:
+        global _default_theme
+        _default_theme = theme
+    else:
+        raise TypeError("theme must be a complete Theme object")
+
+
+def get_default_theme():
+    return _default_theme

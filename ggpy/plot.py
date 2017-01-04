@@ -1,5 +1,6 @@
 
 from .layer import Layer
+from .layout import Layout
 from .scale import Scale
 from .scales import ScalesList
 from .facet import Facet
@@ -7,8 +8,8 @@ from .facet_null import FacetNull
 from .coord import Coord
 from .coord_cartesian import CoordCartesian
 from .theme import Theme
-from .theme_default import get_default_theme
 from .labels import make_labels, labs, Labels
+from .geom_blank import GeomBlank
 
 
 class ggplot(object):
@@ -18,7 +19,7 @@ class ggplot(object):
         self._mapping = mapping
         self._layers = []
         self._scales = ScalesList()
-        self._theme = get_default_theme()
+        self._theme = Theme()
         self._coordinates = CoordCartesian()
         self._facet = FacetNull()
         self._labels = make_labels(self._mapping)

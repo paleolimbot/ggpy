@@ -97,8 +97,14 @@ class ScalesList(object):
                     if defaultscale is not None:
                         self.add(defaultscale)
 
+    def add_missing(self, aesthetics):  # don't need plot env since we are not using find_global for default scales
+        aesthetics = set(aesthetics).difference(set(self.input()))
+        for aes in aesthetics:
+            self.add(continuous_scale(aes))
+
 
 def default_scale(dtype, aes):
+    # todo: need better default scale mapping strategy
     if dtype in ('object', 'category'):
         return discrete_scale(aes)
     elif dtype.startswith("<U"):

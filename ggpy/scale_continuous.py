@@ -18,7 +18,7 @@ def continuous_scale(aes_name, **kwargs):
     elif aes_name == "y":
         return scale_y_continuous(**kwargs)
     else:
-        return None
+        return ScaleContinuous(aesthetics=(aes_name,), **kwargs)
 
 
 class ScaleContinuousPosition(ScaleContinuous):

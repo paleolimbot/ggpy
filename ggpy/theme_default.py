@@ -58,18 +58,3 @@ def theme_grey(base_size=11, base_family='Arial'):
                  plot_subtitle=element_text(size=Rel(0.9), hjust=0, margin=Margin(b=half_line * 0.9)),
                  plot_caption=element_text(size=Rel(0.9), hjust=1, margin=Margin(t=half_line * 0.9)),
                  plot_margin=Margin(half_line, half_line, half_line, half_line))
-
-
-_default_theme = theme_grey()
-
-
-def set_default_theme(theme):
-    if isinstance(theme, Theme) and theme.complete:
-        global _default_theme
-        _default_theme = theme
-    else:
-        raise TypeError("theme must be a complete Theme object")
-
-
-def get_default_theme():
-    return _default_theme

@@ -58,6 +58,7 @@ class GTree(Grob):
         ymin, ymax = zip(*[child.range_y() for child in self.children])
         return min(ymin), max(ymax)
 
+
 class ZeroGrob(Grob):
 
     def __init__(self):
@@ -71,6 +72,11 @@ class ZeroGrob(Grob):
 
     def draw_details(self, recording):
         return None
+
+
+class NullGrob(ZeroGrob):
+    # not sure what the distinction between these two are
+    pass
 
 
 class PointsGrob(Grob):
