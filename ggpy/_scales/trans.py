@@ -1,5 +1,6 @@
 
 import numpy as np
+from .._na import NA_character_, is_nan
 from .breaks import wilkinson_breaks, log_breaks
 
 
@@ -9,7 +10,7 @@ class Trans(object):
         self.domain = (-np.inf, np.inf)
 
     def format(self, x):
-        return np.array(['%s' % e for e in x])
+        return np.array(['%s' % e if not is_nan(e) else NA_character_ for e in x])
 
     def breaks(self, x, **kwargs):
         return wilkinson_breaks(np.nanmin(x), np.nanmax(x), **kwargs)

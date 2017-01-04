@@ -12,7 +12,8 @@ import copy
 class Scale(object):
 
     def __init__(self, aesthetics=None, scale_name=None, range=None, limits=None, na_value=NA, expand=Waiver(),
-                 name=Waiver(), breaks=Waiver(), labels=Waiver(), guide="legend", trans=None, palette=None):
+                 name=Waiver(), breaks=Waiver(), labels=Waiver(), guide="legend", trans=None, palette=None,
+                 position="left"):
         self.aesthetics = () if aesthetics is None else aesthetics
         self.scale_name = scale_name
         self.range = Range() if range is None else range
@@ -25,6 +26,10 @@ class Scale(object):
         self.guide = guide
         self.trans = trans
         self.palette = self.default_palette() if palette is None else palette
+        self.position = position
+
+    def expand_default(self, discrete=(0, 0.6), continuous=(0.05, 0)):
+        raise NotImplementedError()
 
     def default_palette(self):
         raise NotImplementedError()
@@ -105,6 +110,15 @@ class Scale(object):
     def break_info(self, range=None):
         raise NotImplementedError()
 
+    def axis_order(self):
+        if self.position in ("bottom", "right"):
+            return "secondary", "primary"
+        else:
+            return "primary", "secondary"
+
+    def make_title(self, title):
+        return title
+
     def make_sec_title(self, title):
         return title
 
@@ -122,6 +136,9 @@ class ScaleContinuous(Scale):
         self.rescaler = rescaler
         self.oob = oob
         self.minor_breaks = minor_breaks
+
+    def expand_default(self, discrete=(0, 0.6), continuous=(0.05, 0)):
+        return continuous
 
     def default_palette(self):
         return None
@@ -192,9 +209,9 @@ class ScaleContinuous(Scale):
                 return np.array(())
             bd = np.diff(b)[0]
             if np.min(limits) < np.min(b):
-                b = np.concatenate(b[0] - bd, b)
+                b = np.concatenate([[b[0] - bd, ], b])
             if np.max(limits) > np.max(b):
-                b = np.concatenate(b, b[len(b)-1] + bd)
+                b = np.concatenate([b, [b[len(b)-1] + bd,]])
             breaks = [(b[i-1]+b[i])/2 for i in range(1, len(b))]
         elif callable(self.minor_breaks):
             breaks = self.minor_breaks(self.trans.inverse(limits))
@@ -258,6 +275,9 @@ class ScaleDiscrete(Scale):
                        expand=expand, guide=guide, range=range, aesthetics=aesthetics, scale_name=scale_name,
                        palette=palette)
         self.drop = drop
+
+    def expand_default(self, discrete=(0, 0.6), continuous=(0.05, 0)):
+        return discrete
 
     def default_palette(self, x=0):
         return lambda n: PaletteDiscrete(n=n, na_value=self.na_value)

@@ -27,20 +27,20 @@ class CoordCartesian(Coord):
         return transform_position(data, squish_infinite, squish_infinite)
 
     def train(self, scale_details):
-        def train_cartesian(out, scale_details, limits, name):
-            expand = self.expand if self.expand else (0, 0)
+        def train_cartesian(out, scale, limits, name):
+            expand = scale.expand_default() if self.expand else (0, 0)
             if limits is None:
-                range = scale_details.dimension(expand)
+                range = scale.dimension(expand)
             else:
-                range = expand_range(scale_details.transform(limits), expand[0], expand[1])
-            for key, value in scale_details.break_info(range).items():
+                range = expand_range(scale.transform(limits), expand[0], expand[1])
+            for key, value in scale.break_info(range).items():
                 out[name + "_" + key] = value
 
-            out[name + "_arrange"] = scale_details.axis_order()
+            out[name + "_arrange"] = scale.axis_order()
 
         out = {}
-        train_cartesian(out, scale_details, self.limits["x"], "x")
-        train_cartesian(out, scale_details, self.limits["y"], "y")
+        train_cartesian(out, scale_details["x"], self.limits["x"], "x")
+        train_cartesian(out, scale_details["y"], self.limits["y"], "y")
         return out
 
     def clone(self):

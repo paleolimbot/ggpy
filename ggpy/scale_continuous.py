@@ -38,7 +38,6 @@ class ScaleContinuousPosition(ScaleContinuous):
         return scaled
 
     def break_info(self, range=None):
-        # todo: when secondary axis is a waiver this causes errors
         breaks = ScaleContinuous.break_info(self, range)
         if not isinstance(self.secondary_axis, Waiver) and self.secondary_axis.empty():
             self.secondary_axis.init(self)

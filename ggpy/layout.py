@@ -88,12 +88,12 @@ class Layout(object):
             panels = list(layout["PANEL"])
             match_id = [panels.index(el) for el in layer_data["PANEL"]]
             pieces_x = scale_apply(layer_data, xvars, "map", layout["SCALE_X"][match_id], self.panel_scales["x"])
-            pieces_y = scale_apply(layer_data, xvars, "map", layout["SCALE_Y"][match_id], self.panel_scales["y"])
+            pieces_y = scale_apply(layer_data, yvars, "map", layout["SCALE_Y"][match_id], self.panel_scales["y"])
             # todo: currently modifies data
             for col in pieces_x.keys():
-                layer_data[col] = np.concatenate(*pieces_x[col])
+                layer_data[col] = np.concatenate(pieces_x[col])
             for col in pieces_y.keys():
-                layer_data[col] = np.concatenate(*pieces_y[col])
+                layer_data[col] = np.concatenate(pieces_y[col])
 
         return data
 
@@ -113,7 +113,7 @@ class Layout(object):
 
     def train_ranges(self, coord):
         def compute_range(ix, iy):
-            return coord.train({"x": self.panel_scales["x"][[ix]], "y": self.panel_scales["y"][[iy]]})
+            return coord.train({"x": self.panel_scales["x"][ix], "y": self.panel_scales["y"][iy]})
         # Switch position of all scales if CoordFlip
         if isinstance(coord, CoordFlip) or (isinstance(coord, CoordPolar) and coord.theta == "y"):
             for scale in self.panel_scales["x"]:
