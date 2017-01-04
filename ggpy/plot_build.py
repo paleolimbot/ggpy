@@ -18,20 +18,40 @@ class BuiltGGPlot(object):
         layers = plot._layers
         layer_data = [l.layer_data(plot._data) for l in layers]
         scales = plot._scales
-        layout = Layout(plot._facet)
 
         def by_layer(layers, data, f):
             return [f(layers[i], data[i]) for i in range(len(layers))]
 
-        # todo: analyze data chain to minimize copying
+        # Initialise panels, add extra data for margins & missing facetting
+        # variables, and add on a PANEL variable to data
+        # todo: analyze data chain to minimize copying (ensure modification doesn't screw up multiple layers)
+        layout = Layout(plot._facet)
         data = layout.setup(layer_data, plot._data, plot._global_vars, plot._local_vars, plot._coordinates)
         data = layout.map(data)
+
+        # Compute aesthetics to produce data with generalised variable names
+        data = by_layer(layers, data, lambda l, d: l.compute_aesthetics(d, plot))
+
+        # Transform all scales
+        data = [scales.transform_df(df) for df in data]
+
+        # Map and train positions so that statistics have access to ranges
+        # and all positions are numeric
+        layout.train_position(data, scales.get_scales("x"), scales.get_scales("y"))
+        data = layout.map_position(data)
+
+        # Apply and map statistics
         data = by_layer(layers, data, lambda l, d: l.compute_statistic(d, layout))
         data = by_layer(layers, data, lambda l, d: l.map_statistic(d, plot))
 
         # make sure x and y scales exist
         scales.add_missing(("x", "y"))
+
+        # Reparameterise geoms from (e.g.) y and width to ymin and ymax
         data = by_layer(layers, data, lambda l, d: l.compute_geom_1(d))
+
+        # Apply position adjustments
+        data = by_layer(layers, data, lambda l, d: l.compute_position(d, layout))
 
         # Reset position scales, then re-train and map.  This ensures that facets
         # have control over the range of a plot: is it generated from what's

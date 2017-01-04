@@ -24,7 +24,8 @@ class Stat(object):
         check_required_aesthetics(self.required_aes,
                                   np.concatenate((tuple(params.keys()), data.columns)),
                                   type(self).__name__)
-        data = remove_missing(data, params['na_rm'], np.concatenate((self.required_aes, self.non_missing_aes)),
+        na_rm = params['na_rm'] if 'na_rm' in params else False
+        data = remove_missing(data, na_rm, np.concatenate((self.required_aes, self.non_missing_aes)),
                               type(self).__name__, finite=True)
         newpars = {}
         parnames = [p for p in self.parameters() if p in params]
@@ -32,11 +33,11 @@ class Stat(object):
             newpars[p] = params[p]
 
         def f(paneldata):
-            scales = panels.scales(paneldata.PANEL[0])
+            scales = panels.get_scales(paneldata.PANEL[0])
             try:
                 return self.compute_panel(paneldata, scales, params)
             except Exception as e:
-                warning_wrap('Computation failed in %s: %s %s' % type(self).__name__, type(e).__name__, str(e))
+                warning_wrap('Computation failed in %s: %s %s' % (type(self).__name__, type(e).__name__, str(e)))
                 return pd.DataFrame()
 
         return data.groupby('PANEL').apply(f)
@@ -45,7 +46,10 @@ class Stat(object):
         if len(data) == 0:
             return pd.DataFrame()
         # missing some of https://github.com/hadley/ggplot2/blob/master/R/stat-.r#L104
-        return data.groupby('group').apply(lambda group: self.compute_group(group, scales, params))
+        if 'group' in data.columns:
+            return data.groupby('group').apply(lambda group: self.compute_group(group, scales, params))
+        else:
+            return self.compute_group(data, scales, params)
 
     def compute_group(self, data, scales, params=None):
         raise NotImplementedError("Not implemented")

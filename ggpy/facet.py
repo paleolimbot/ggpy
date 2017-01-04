@@ -12,10 +12,10 @@ class Facet(object):
         self.params = {}
 
     def train(self, data, params):
-        self.compute_layout(data, params)
+        return self.compute_layout(data, params)
 
-    def map(self, data, layout, params):
-        self.map_data(data, layout, self.params)
+    def map(self, data, layout):
+        return self.map_data(data, layout, self.params)
 
     def render_back(self, data, layout, x_scales, y_scales, theme):
         self.draw_front(data, layout, x_scales, y_scales, theme, self.params)
@@ -35,17 +35,18 @@ class Facet(object):
 
     def init_scales(self, layout, x_scale=None, y_scale=None, params=None):
         scales = {}
+        # need to use zero-based indicies for scales, so therefore need max(scale_x)+1
         if x_scale is not None:
-            scales["x"] = [x_scale.clone() for i in range(max(layout["SCALE_X"]))]
+            scales["x"] = [x_scale.clone() for i in range(max(layout["SCALE_X"])+1)]
         if y_scale is not None:
-            scales["y"] = [y_scale.clone() for i in range(max(layout["SCALE_Y"]))]
+            scales["y"] = [y_scale.clone() for i in range(max(layout["SCALE_Y"])+1)]
         return scales
 
     def train_scales(self, x_scales, y_scales, layout, data, params):
-        layout_ids = layout["PANEL"]
+        layout_ids = list(layout["PANEL"])
         for layer_data in data:
             # todo: unsure about what exactly is getting passed in for layout and layer_data
-            match_id = int(np.argwhere(layout_ids == layer_data["PANEL"]))
+            match_id = [layout_ids.index(el) for el in layer_data["PANEL"]]
             if x_scales is not None:
                 x_vars = set(x_scales[0].aesthetics).intersection(set(layer_data.columns))
                 SCALE_X = layout["SCALE_X"][match_id]
@@ -105,4 +106,5 @@ class Facet(object):
 
 
 def layout_null():
-    return pd.DataFrame({"PANEL": [1, ], "ROW": [1,], "COL": [1, ], "SCALE_X": [1, ], "SCALE_Y": [1, ]})
+    # need to use zero-based indicies or things get a little crazy
+    return pd.DataFrame({"PANEL": [0, ], "ROW": [0, ], "COL": [0, ], "SCALE_X": [0, ], "SCALE_Y": [0, ]})

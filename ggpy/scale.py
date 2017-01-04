@@ -51,7 +51,7 @@ class Scale(object):
     def transform_df(self, df):
         if len(df) == 0:
             return df
-        aesthetics = set(self.aesthetics.values()).intersection(set(df.columns))
+        aesthetics = set(self.aesthetics).intersection(set(df.columns))
         # modify df in place
         for col in aesthetics:
             df[col] = self.transform(df[col])
@@ -137,7 +137,7 @@ class ScaleContinuous(Scale):
             self.range.train(x)
 
     def transform(self, x):
-        self.trans.transform(x)
+        return self.trans.transform(x)
 
     def map(self, x, limits=None):
         if limits is None:

@@ -16,9 +16,11 @@ class FacetNull(Facet):
 
     def map_data(self, data, layout, params):
         if len(data) > 0:
-            data["PANEL"] = 1
+            # need to use zero-based indicies
+            data["PANEL"] = 0
+            return data
         else:
-            pd.DataFrame({}, columns=list(data.columns) + ["PANEL", ])
+            return pd.DataFrame({}, columns=list(data.columns) + ["PANEL", ])
 
     def draw_panels(self, panels, layout, x_scales, y_scales, ranges, coord, data, theme, params):
         range = ranges[0]

@@ -91,7 +91,7 @@ def is_position_aes(vars):
 
 def check_aesthetics(df_like, n):
     lens = [np.shape(df_like[col]) for col in df_like]
-    if all(l == 1 or l == n for l in lens):
+    if all(len(l) == 0 or l[0] == n for l in lens):
         return
     else:
         raise ValueError("Aesthetics must be scalar or same length as data")

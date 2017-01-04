@@ -1,6 +1,5 @@
 
 from .layer import Layer
-from .layout import Layout
 from .scale import Scale
 from .scales import ScalesList
 from .facet import Facet
@@ -9,7 +8,7 @@ from .coord import Coord
 from .coord_cartesian import CoordCartesian
 from .theme import Theme
 from .labels import make_labels, labs, Labels
-from .geom_blank import GeomBlank
+from .plot_build import BuiltGGPlot
 
 
 class ggplot(object):
@@ -118,10 +117,10 @@ class ggplot(object):
 
     def clone(self):
         newobj = ggplot(data=self._data, local_vars=self._local_vars, global_vars=self._global_vars)
-        newobj._mapping = self._mapping.copy()  # shallow copy is fine?
+        newobj._mapping = self._mapping.copy() if self._mapping is not None else None
         newobj._layers = [layer.clone() for layer in self._layers]
         newobj._scales = self._scales.clone()
-        newobj._theme = self._theme.copy()  # shallow copy is fine?
+        newobj._theme = self._theme.copy() if self._theme is not None else None
         newobj._coordinates = newobj._coordinates.clone()
         newobj._facet = self._facet.clone()
         newobj._labels = self._labels.copy()
@@ -155,3 +154,6 @@ class ggplot(object):
         else:
             newobj.__iadd__(other)
         return newobj
+
+    def build(self):
+        return BuiltGGPlot(self)

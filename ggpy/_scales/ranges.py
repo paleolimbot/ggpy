@@ -23,10 +23,13 @@ def rescale(x, to=(0, 1), from_=None):
 
 
 def censor(x, range=(0, 1), only_finite=True):
-    x = np.array(x)
+    if len(x) == 0:
+        return x
+    x = np.array(x, dtype=float)
     if only_finite:
-        x[np.logical_not(np.isfinite(x))] = NA
-    x[np.logical_or(x < range[0], x > range[1])] = NA
+        x[~np.isfinite(x)] = NA
+    outofrange = np.logical_or(x < range[0], x > range[1])
+    x[outofrange] = NA
     return x
 
 

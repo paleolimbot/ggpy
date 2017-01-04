@@ -16,7 +16,7 @@ import numpy as np
 class Layer(object):
 
     def __init__(self, geom=None, geom_params=None, stat=None, stat_params=None,
-                 data=None, aes_params=None, mapping=None, position=None, inherit_aes=False):
+                 data=Waiver(), aes_params=None, mapping=None, position=None, inherit_aes=False):
         if not isinstance(geom, Geom):
             raise TypeError("parameter 'geom' must inherit from type Geom")
         self.geom = geom
@@ -26,7 +26,7 @@ class Layer(object):
         self.stat = stat if stat is not None else StatIdentity()
         self.stat_params = stat_params if stat_params is not None else {}
         self.data = data
-        self.aes_params = aes_params if aes_params is not None else aes_params
+        self.aes_params = aes_params if aes_params is not None else {}
         if mapping is not None and not isinstance(mapping, Mapping):
             raise TypeError("parameter 'mapping' must be of type 'Mapping'")
         self.mapping = mapping if mapping is not None else aes()
@@ -46,7 +46,9 @@ class Layer(object):
                                                                   repr(self.stat), repr(self.position))
 
     def layer_data(self, plot_data):
-        if isinstance(self.data, Waiver):
+        if self.data is None:
+            return pd.DataFrame()
+        elif isinstance(self.data, Waiver):
             return plot_data
         elif callable(self.data):
             data = self.data(plot_data)
@@ -58,7 +60,7 @@ class Layer(object):
 
     def compute_aesthetics(self, data, plot):
         if self.inherit_aes:
-            aesthetics = plot.mapping + self.mapping
+            aesthetics = plot._mapping + self.mapping
         else:
             aesthetics = self.mapping
 
@@ -70,7 +72,7 @@ class Layer(object):
             aesthetics["group"] = self.geom_params["group"]
 
         # add default aesthetics
-        plot.scales.add_defaults(data, aesthetics, plot.global_vars, plot.local_vars)
+        plot._scales.add_defaults(data, aesthetics, plot._global_vars, plot._local_vars)
 
         # evaluate aesthetics
         evaled = aesthetics.map_df(data)
@@ -107,7 +109,7 @@ class Layer(object):
             return pd.DataFrame()
         aesthetics = self.mapping
         if self.inherit_aes:
-            aesthetics = plot.mapping + aesthetics
+            aesthetics = plot._mapping + aesthetics
         aesthetics = self.stat.default_aes + aesthetics
         newaes = aes()
         for key in aesthetics.keys():
@@ -118,15 +120,15 @@ class Layer(object):
         # Add map stat output to aesthetics
         stat_data = newaes.map_df(data)
         # add new scales (if necessary)
-        plot.scales.add_defaults(data, newaes, plot.global_vars, plot.local_vars)
+        plot._scales.add_defaults(data, newaes, plot._global_vars, plot._local_vars)
 
         # re-transform
         if self.stat.retransform:
-            stat_data = plot.scales.transform_df(stat_data)
+            stat_data = plot._scales.transform_df(stat_data)
 
-        # recombine
+        # recombine (stat_data is a 'dict' not a df)
         for col in data:
-            if col not in stat_data.columns:
+            if col not in stat_data:
                 stat_data[col] = data[col]
         return data
 

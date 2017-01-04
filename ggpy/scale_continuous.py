@@ -1,4 +1,6 @@
 
+import numpy as np
+
 from ._na import is_nan
 from .scale import ScaleContinuous, aesthetics_x, aesthetics_y
 from .utilities import Waiver
@@ -24,19 +26,21 @@ def continuous_scale(aes_name, **kwargs):
 class ScaleContinuousPosition(ScaleContinuous):
 
     def __init__(self, secondary_axis=Waiver(), **kwargs):
-        ScaleContinuous.__init__(**kwargs)
+        ScaleContinuous.__init__(self, **kwargs)
         self.secondary_axis = secondary_axis
 
     def map(self, x, limits=None):
         if limits is None:
             limits = self.get_limits()
-        scaled = self.oob(x, limits)
+        scaled = self.oob(x, limits)  # censor() returns dtype of float (amenable to NAs) but other oob funcs might not
+        scaled = np.array(scaled, dtype=float)
         scaled[is_nan(scaled)] = self.na_value
         return scaled
 
     def break_info(self, range=None):
+        # todo: when secondary axis is a waiver this causes errors
         breaks = ScaleContinuous.break_info(self, range)
-        if not isinstance(self.secondary_axis, Waiver) or self.secondary_axis.empty():
+        if not isinstance(self.secondary_axis, Waiver) and self.secondary_axis.empty():
             self.secondary_axis.init(self)
             for key, value in self.secondary_axis.break_info(breaks["range"], self):
                 breaks[key] = value

@@ -4,6 +4,7 @@ from .coord_polar import CoordPolar
 from ._grob.grob import GTree, ZeroGrob
 from ._na import is_nan
 from .utilities import Waiver
+import numpy as np
 
 
 class Layout(object):
@@ -15,15 +16,14 @@ class Layout(object):
         self.panel_ranges = panel_ranges
 
     def setup(self, data, plot_data, plot_globals, plot_locals, plot_coord):
-        # not sure if this is ncessary
-        data = data.copy()
-        for col in plot_data:
-            if col not in data.columns:
-                data[col] = plot_data[col]
+        # data is a list here
+        # not sure if this is necessary
+        data.insert(0, plot_data)
+
         # the R implementation has self.facet.params containing references to everything
         # in the plot environment (plot.global_vars, plot.local_vars)
         # skipping this
-        self.facet.params = self.facet.setup_params(self, data, self.facet.params)
+        self.facet.params = self.facet.setup_params(data, self.facet.params)
         data = self.facet.setup_data(data, self.facet.params)
         self.panel_layout = self.facet.train(data, self.facet.params)
         missingcols = [col for col in ("PANEL", "SCALE_X", "SCALE_Y") if col not in self.panel_layout.columns]
@@ -34,12 +34,11 @@ class Layout(object):
             scales = self.panel_layout[["SCALE_X", "SCALE_Y"]]
             self.panel_layout["SCALE_X"] = scales["SCALE_Y"]
             self.panel_layout["SCALE_Y"] = scales["SCALE_X"]
-        # todo: R implementation has data[-1] here (without the first column)
-        return data
+
+        return data[1:]
 
     def map(self, data):
-        # todo: check call to see what input/output is for this function
-        # data appears to be a list of DataFrames here
+        # is a list of DataFrames here (one for each layer)
         return [self.facet.map(d, self.panel_layout) for d in data]
 
     def render(self, panels, data, coord, theme, labels):
@@ -58,7 +57,7 @@ class Layout(object):
                 panel = [bg, ] + panel + [fg, ]
             newpanels.append(GTree(*panel, name="panel-%s" % i))
         labels = coord.labels({"x": self.xlabel(labels), "y": self.ylabel(labels)})
-        labels = self.render_labels(labels)
+        labels = self.render_labels(labels, theme)
         return self.facet.render_panels(panels, self.panel_layout, self.panel_scales["x"],
                                         self.panel_scales["y"], self.panel_ranges, coord, data, theme, labels)
 
@@ -82,28 +81,21 @@ class Layout(object):
 
     def map_position(self, data):
         layout = self.panel_layout
-        newdata = []
-
-        def f(layer_data, scale, vars):
-            if len(layer_data) == 0:
-                return layer_data
-            if len(vars) == 0:
-                return layer_data
-            scale_id = layer_data["SCALE_" + scale.upper()][0]
-            s = self.panel_scales["scale"][scale_id]
-            for var in vars:
-                layer_data[var] = s.map(layer_data[var])
-            return layer_data
 
         for layer_data in data:
             xvars = set(self.panel_scales["x"][0].aesthetics).intersection(set(layer_data.columns))
             yvars = set(self.panel_scales["y"][0].aesthetics).intersection(set(layer_data.columns))
-            newdata.append(layer_data
-                           .groupby("SCALE_X").apply(lambda ld: f(ld, scale="x", vars=xvars))
-                           .reset_index()
-                           .groupby("SCALE_Y").apply(lambda ld: f(ld, scale="y", vars=yvars))
-                           .reset_index())
-        return newdata
+            panels = list(layout["PANEL"])
+            match_id = [panels.index(el) for el in layer_data["PANEL"]]
+            pieces_x = scale_apply(layer_data, xvars, "map", layout["SCALE_X"][match_id], self.panel_scales["x"])
+            pieces_y = scale_apply(layer_data, xvars, "map", layout["SCALE_Y"][match_id], self.panel_scales["y"])
+            # todo: currently modifies data
+            for col in pieces_x.keys():
+                layer_data[col] = np.concatenate(*pieces_x[col])
+            for col in pieces_y.keys():
+                layer_data[col] = np.concatenate(*pieces_y[col])
+
+        return data
 
     def finish_data(self, data):
         return [self.facet.finish_data(layer_data, self.panel_layout, self.panel_scales["x"],
@@ -112,9 +104,12 @@ class Layout(object):
     def get_scales(self, i):
         for p in range(len(self.panel_layout)):
             if self.panel_layout["PANEL"][p] == i:
-                return {"x": self.panel_scales["x"][self.panel_layout["SCALE_X"][p]],
-                        "y": self.panel_scales["y"][self.panel_layout["SCALE_X"][p]]}
-        return None
+                # scales may not exist yet? the call to scales_add_missing comes after the first call
+                # to this
+                sx = self.panel_scales["x"][self.panel_layout["SCALE_X"][p]] if "x" in self.panel_scales else None
+                sy = self.panel_scales["y"][self.panel_layout["SCALE_Y"][p]] if "y" in self.panel_scales else None
+                return {"x": sx, "y": sy}
+        return {"x": None, "y": None}
 
     def train_ranges(self, coord):
         def compute_range(ix, iy):
@@ -161,15 +156,20 @@ class Layout(object):
 
 def scale_apply(data, variables, method, scale_id, scales):
     if len(variables) == 0:
-        return
+        return {}
     if len(data) == 0:
-        return
+        return {}
     if any(is_nan(scale_id)):
         raise ValueError("NA scale ID in scale_apply()")
 
     pieces = {}
+    scale_id = np.array(scale_id)
     for var in variables:
-        pieces[var] = ([getattr(scales[i], method)(data[var][scale_id == i]) for i in len(scales)])
+        piece = []
+        for i in range(len(scales)):
+            scale = scales[i]
+            piece.append(getattr(scale, method)(data[var][scale_id == i]))
+        pieces[var] = piece
 
     return pieces
 
