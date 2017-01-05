@@ -6,11 +6,11 @@ import numpy as np
 
 
 def scale_x_continuous(**kwargs):
-    return ScaleDiscrete(aesthetics=aesthetics_x, scale_name="position_d", guide="none", **kwargs)
+    return ScaleDiscretePosition(aesthetics=aesthetics_x, scale_name="position_d", guide="none", **kwargs)
 
 
 def scale_y_continuous(**kwargs):
-    return ScaleDiscrete(aesthetics=aesthetics_y, scale_name="position_d", guide="none", **kwargs)
+    return ScaleDiscretePosition(aesthetics=aesthetics_y, scale_name="position_d", guide="none", **kwargs)
 
 
 def discrete_scale(aes_name, **kwargs):
@@ -85,8 +85,8 @@ class ScaleDiscretePosition(ScaleDiscrete):
             return expand_range((1, len(d_range)), expand[0], expand[1], 1)
         else:
             # both
-            both = np.concatenate(expand_range(c_range, expand[0], 0, 1),
-                                  expand_range((1, len(d_range), 0, expand[1], 1)))
+            both = np.concatenate([expand_range(c_range, expand[0], 0, 1),
+                                   expand_range((0, len(d_range)-1), 0, expand[1], 1)])
             return np.nanmin(both), np.nanmax(both)
 
     def get_breaks(self, limits=None):

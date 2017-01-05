@@ -309,7 +309,7 @@ class ScaleDiscrete(Scale):
         return pal_match
 
     def dimension(self, expand=(0, 0)):
-        return expand_range(len(self.get_limits()), expand[0], expand[1])
+        return expand_range((0, len(self.get_limits())-1), expand[0], expand[1])
 
     def get_breaks(self, limits=None):
         if self.is_emtpy():

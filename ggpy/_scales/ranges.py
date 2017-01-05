@@ -4,12 +4,10 @@ from .._na import NA, is_nan, NA_character_
 
 
 def expand_range(range, mul=0, add=0, zero_width=1):
-    c = np.mean(range)
-    spread = range[1] - range[0]
-    if spread == 0:
-        spread = zero_width
-    spread *= 1 + mul*2
-    return c-spread/2-add, c+spread/2+add
+    if zero_range(range):
+        return range[0] - zero_width / 2, range[0] + zero_width / 2
+    else:
+        return range + np.array((-1, 1)) * (np.ptp(range) * mul + add)
 
 
 def zero_range(range, tol=2.220446e-13):

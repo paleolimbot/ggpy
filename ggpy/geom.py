@@ -19,7 +19,7 @@ class Geom(object):
 
     def handle_na(self, data, params):
         return remove_missing(data, params['na_rm'],
-                              np.concatenate((self.required_aes, self.non_missing_aes)), type(self).__name__)
+                              np.concatenate([(self.required_aes, self.non_missing_aes)]), type(self).__name__)
 
     def draw_layer(self, data, params, panel, coord):
         if len(data) == 0:
