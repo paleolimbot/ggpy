@@ -1,5 +1,5 @@
 
-from .plot import ggplot
+from .plot import ggplot, set_build_method
 from .aes import aes
 from .layer import Layer
 from .geom_point import GeomPoint

@@ -18,6 +18,15 @@ def _interface_dir(interface_obj):
     return [obj for obj in dir(interface_obj) if not obj.startswith("_") and callable(getattr(interface_obj, obj))]
 
 
+# this sets the default build method
+_build_method = BuiltGGPlot
+
+
+def set_build_method(method):
+    global _build_method
+    _build_method = method
+
+
 class ggplot(object):
 
     def __init__(self, data=None, mapping=None, local_vars=None, global_vars=None):
@@ -36,6 +45,7 @@ class ggplot(object):
         # this is only in the Python edition (self._built must be set to None whenever this object
         # is modified
         self._built = None
+        self._build_method = _build_method
         self._interface = interface
 
     def __layer(self, layer=None, **kwargs):
@@ -138,7 +148,7 @@ class ggplot(object):
         return self
 
     def clone(self):
-        newobj = ggplot(data=self._data, local_vars=self._local_vars, global_vars=self._global_vars)
+        newobj = type(self)(data=self._data, local_vars=self._local_vars, global_vars=self._global_vars)
         newobj._mapping = self._mapping.copy() if self._mapping is not None else None
         newobj._layers = [layer.clone() for layer in self._layers]
         newobj._scales = self._scales.clone()
@@ -172,15 +182,6 @@ class ggplot(object):
         newobj = self.clone()
         return newobj.modify(other)
 
-    def build(self):
-        if self._built is None:
-            self._built = BuiltGGPlot(self)
-        return self._built
-
-    def rebuild(self):
-        self._built = None
-        return self.build()
-
     def __iadd__(self, other):
         return self.add(other)
 
@@ -206,4 +207,43 @@ class ggplot(object):
     def __dir__(self):
         return list(object.__dir__(self)) + list(_interface_dir(self._interface))
 
+    # this allows Jupyter Notebook to display the plot (as created/rendered by self._build_method)
+    # regular repr should remain unbuilt (since it is not displayed)
+    def build(self):
+        if self._built is None:
+            self._built = self._build_method(self)
+        return self._built
 
+    def rebuild(self):
+        self._built = None
+        return self.build()
+
+    def _repr_html_(self):
+        self.build()
+        if '_repr_html_' in dir(self._built):
+            return self._built._repr_html_()
+        return None
+
+    def _repr_svg_(self):
+        self.build()
+        if '_repr_svg_' in dir(self._built):
+            return self._built._repr_svg_()
+        return None
+
+    def _repr_png_(self):
+        self.build()
+        if '_repr_png_' in dir(self._built):
+            return self._built._repr_png_()
+        return None
+
+    def _repr_jpeg_(self):
+        self.build()
+        if '_repr_jpeg_' in dir(self._built):
+            return self._built._repr_jpeg_()
+        return None
+
+    def _repr_javascript_(self):
+        self.build()
+        if '_repr_javascript_' in dir(self._built):
+            return self._built._repr_javascript_()
+        return None
