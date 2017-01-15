@@ -9,9 +9,9 @@ from .labels import labs as _labs
 
 
 def geom_point(mapping=None, data=None, stat="identity", position="identity",
-               na_rm=False, show_legend=NA, inherit_aes=True):
+               na_rm=False, show_legend=NA, inherit_aes=True, **kwargs):
     return _Layer(mapping=mapping, data=data, stat=stat, position=position, geom="point", show_legend=show_legend,
-                  inherit_aes=inherit_aes, stat_params={"na_rm": na_rm}, geom_params={"na_rm": na_rm})
+                  inherit_aes=inherit_aes, stat_params={"na_rm": na_rm}, geom_params={"na_rm": na_rm}, **kwargs)
 
 
 def labs(**kwargs):
