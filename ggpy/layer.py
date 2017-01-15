@@ -1,5 +1,10 @@
 
+import numpy as np
+import pandas as pd
+
+from ._na import NA
 from .geom import Geom
+from .geom_point import GeomPoint
 from .stat import Stat, StatIdentity
 from .aes import Mapping, aes, check_aesthetics, check_required_aesthetics
 from .aes_calculated import is_calculated_aes, strip_dots
@@ -9,37 +14,78 @@ from .utilities import Waiver
 from .grouping import add_group
 from ._grob.grob import ZeroGrob
 
-import pandas as pd
-import numpy as np
+
+# these functions sanitise input to the Layer() constructor, making it possible to generate
+# objects if a type/function, string, or instance is passed.
+def _position(position_input, **kwargs):
+    if position_input is None:
+        return PositionIdentity()
+    elif isinstance(position_input, Position):
+        return position_input
+    elif callable(position_input):
+        newpos = position_input(**kwargs)
+        if not isinstance(newpos, Position):
+            raise TypeError("Position function returns non-position value")
+        return newpos
+    elif position_input == "identity":
+        return PositionIdentity()
+    else:
+        raise ValueError("Could not find position object for input '%s'" % position_input)
+
+
+def _stat(stat_input, **kwargs):
+    if stat_input is None:
+        return StatIdentity()
+    elif isinstance(stat_input, Stat):
+        return stat_input
+    elif callable(stat_input):
+        newstat = stat_input(stat_input, **kwargs)
+        if not isinstance(newstat, Stat):
+            raise TypeError("Stat function returns non-stat value")
+        return newstat
+    elif stat_input == "identity":
+        return StatIdentity()
+    else:
+        raise ValueError("Could not find stat object for input '%s'" % stat_input)
+
+
+def _geom(geom_input, **kwargs):
+    if isinstance(geom_input, Geom):
+        return geom_input
+    elif callable(geom_input):
+        newgeom = geom_input(geom_input, **kwargs)
+        if not isinstance(newgeom, Geom):
+            raise TypeError("Geom function returns non-geom value")
+        return newgeom
+    elif geom_input == "point":
+        return GeomPoint()
+    else:
+        raise ValueError("Could not find stat object for input '%s'" % geom_input)
 
 
 class Layer(object):
 
     def __init__(self, geom=None, geom_params=None, stat=None, stat_params=None,
-                 data=Waiver(), aes_params=None, mapping=None, position=None, inherit_aes=False):
-        if not isinstance(geom, Geom):
-            raise TypeError("parameter 'geom' must inherit from type Geom")
-        self.geom = geom
+                 data=Waiver(), aes_params=None, mapping=None, position=None, inherit_aes=False,
+                 show_legend=NA):
+        self.geom = _geom(geom)
         self.geom_params = geom_params if geom_params is not None else {}
-        if stat is not None and not isinstance(stat, Stat):
-            raise TypeError("parameter 'stat' must inherit from type Stat")
-        self.stat = stat if stat is not None else StatIdentity()
+        self.stat = _stat(stat)
         self.stat_params = stat_params if stat_params is not None else {}
         self.data = data
         self.aes_params = aes_params if aes_params is not None else {}
         if mapping is not None and not isinstance(mapping, Mapping):
             raise TypeError("parameter 'mapping' must be of type 'Mapping'")
         self.mapping = mapping if mapping is not None else aes()
-        if position is not None and not isinstance(position, Position):
-            raise TypeError("parameter 'position' must be of type 'Position'")
-        self.position = position if position is not None else PositionIdentity()
+        self.position = _position(position)
         self.inherit_aes = inherit_aes
+        self.show_legend = show_legend
 
     def clone(self):
         return type(self)(geom=self.geom, geom_params=self.geom_params.copy(), stat=self.stat,
                           stat_params=self.stat_params.copy(), data=self.data,
                           aes_params=self.aes_params.copy(), mapping=self.mapping.copy(),
-                          position=self.position, inherit_aes=self.inherit_aes)
+                          position=self.position, inherit_aes=self.inherit_aes, show_legend=self.show_legend)
 
     def __repr__(self):
         return "Mapping: %s\nGeom: %s\nStat: %s\nPosition: %s" % (repr(self.mapping), repr(self.geom),
