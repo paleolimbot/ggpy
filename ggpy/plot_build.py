@@ -1,6 +1,15 @@
 
+from .layer import Layer
 from .geom_blank import GeomBlank
 from .layout import Layout
+
+
+_default_render_method = None  # todo: set to actual render method
+
+
+def set_render_method(method):
+    global _default_render_method
+    _default_render_method = method
 
 
 class BuiltGGPlot(object):
@@ -9,12 +18,16 @@ class BuiltGGPlot(object):
         self.plot = ggplot.clone()
         self.data = None
         self.layout = None
-        self.build()
+        self._rendered = None
+        self._render_method = _default_render_method
+        self._built = False
 
     def build(self):
+        if self._built:
+            return
         plot = self.plot
         if len(plot._layers) == 0:
-            plot.layer(geom=GeomBlank())
+            plot = plot.modify(Layer(geom="blank"))
         layers = plot._layers
         layer_data = [l.layer_data(plot._data) for l in layers]
         scales = plot._scales
@@ -81,7 +94,52 @@ class BuiltGGPlot(object):
 
         self.data = data
         self.layout = layout
+        self._built = True
+        return self
 
-    def render(self, renderer):
-        # todo: method stub
-        pass
+    def rebuild(self):
+        self._built = False
+        return self.build()
+
+    # this allows Jupyter Notebook to display the plot (as rendered by self._render_method)
+    # regular repr should remain unbuilt (since it is not displayed)
+    def render(self):
+        if not self._built:
+            self.build()
+        if self._rendered is None:
+            self._rendered = self._render_method(self)
+        return self._rendered
+
+    def rerender(self):
+        self._rendered = None
+        return self.render()
+
+    def _repr_html_(self):
+        self.render()
+        if '_repr_html_' in dir(self._rendered):
+            return self._rendered._repr_html_()
+        return None
+
+    def _repr_svg_(self):
+        self.render()
+        if '_repr_svg_' in dir(self._rendered):
+            return self._rendered._repr_svg_()
+        return None
+
+    def _repr_png_(self):
+        self.render()
+        if '_repr_png_' in dir(self._rendered):
+            return self._rendered._repr_png_()
+        return None
+
+    def _repr_jpeg_(self):
+        self.render()
+        if '_repr_jpeg_' in dir(self._rendered):
+            return self._rendered._repr_jpeg_()
+        return None
+
+    def _repr_javascript_(self):
+        self.render()
+        if '_repr_javascript_' in dir(self._rendered):
+            return self._rendered._repr_javascript_()
+        return None

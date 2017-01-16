@@ -40,7 +40,7 @@ class Scale(object):
     def train_df(self, df):
         if len(df) == 0:
             return
-        aesthetics = set(self.aesthetics.values()).intersection(set(df.columns))
+        aesthetics = set(self.aesthetics).intersection(set(df.columns))
         for col in aesthetics:
             self.train(df[col])
 
@@ -68,7 +68,7 @@ class Scale(object):
     def map_df(self, df, i=None):
         if len(df) == 0:
             return df
-        aesthetics = set(self.aesthetics.values()).intersection(set(df.columns))
+        aesthetics = set(self.aesthetics).intersection(set(df.columns))
         if i is not None:
             df = df.iloc[i]  # subset the data frame
         # if the data frame is not subsetted it is modified in place
@@ -188,7 +188,7 @@ class ScaleContinuous(Scale):
 
         breaks = censor(self.trans.transform(breaks), self.trans.transform(limits), only_finite=False)
         if len(breaks) == 0:
-            raise ValueError("Zero breaks for %s" % "/".join(self.aesthetics.values()))
+            raise ValueError("Zero breaks for %s" % "/".join(self.aesthetics))
         return breaks
 
     def get_breaks_minor(self, n=2, b=None, limits=None):

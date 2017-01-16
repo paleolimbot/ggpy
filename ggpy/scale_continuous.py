@@ -20,6 +20,7 @@ def continuous_scale(aes_name, **kwargs):
     elif aes_name == "y":
         return scale_y_continuous(**kwargs)
     else:
+        # todo: need to add default colour/other aesthetic scales
         return ScaleContinuous(aesthetics=(aes_name,), **kwargs)
 
 

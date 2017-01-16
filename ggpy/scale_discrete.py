@@ -19,7 +19,8 @@ def discrete_scale(aes_name, **kwargs):
     elif aes_name == "y":
         return scale_y_continuous(**kwargs)
     else:
-        return None
+        # todo: need to add default colour/other aesthetic scales
+        return ScaleDiscrete(aesthetics=(aes_name,))
 
 
 def is_discrete(x):

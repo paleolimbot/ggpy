@@ -5,6 +5,7 @@ import pandas as pd
 from ._na import NA
 from .geom import Geom
 from .geom_point import GeomPoint
+from .geom_blank import GeomBlank
 from .stat import Stat, StatIdentity
 from .aes import Mapping, aes, check_aesthetics, check_required_aesthetics
 from .aes_calculated import is_calculated_aes, strip_dots
@@ -59,6 +60,8 @@ def _geom(geom_input, **kwargs):
         return newgeom
     elif geom_input == "point":
         return GeomPoint()
+    elif geom_input == "blank":
+        return GeomBlank()
     else:
         raise ValueError("Could not find stat object for input '%s'" % geom_input)
 
@@ -130,7 +133,10 @@ class Layer(object):
             else:
                 shapes = [np.shape(val) for val in evaled.values()]
                 lengths = [item for sublist in shapes for item in sublist]
-                n = max(lengths)
+                if lengths:
+                    n = max(lengths)
+                else:
+                    n = 0
 
         # check for length/shape
         check_aesthetics(evaled, n)

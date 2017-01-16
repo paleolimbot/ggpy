@@ -29,33 +29,30 @@ def ggplot_builds():
     import numpy as np
     import pandas as pd
     from ggpy import ggplot, aes
-    from ggpy.geom_point import GeomPoint
     df = pd.DataFrame({'a': (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
                        'b': (0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1),
                        'c': ("one", "one", "one", "two", "one", "two", "one", "two", "two", "one", "two"),
                        'd': ("one", ) * 11})
     # both continuous example
-    p = ggplot(df, aes('a', 'b')).layer(geom=GeomPoint(), inherit_aes=True)
-    pb = p.build()
+    p = ggplot(df, aes('a', 'b')).geom_point()
+    pb = p.build().build()
     print(pb.data[0])  # see what the output data is like
     print(pb)
 
     # discrete example
-    p2 = ggplot(df, aes('a', 'c')).layer(geom=GeomPoint(), inherit_aes=True)
-    pb2 = p2.build()
+    p2 = ggplot(df, aes('a', 'c')).geom_point()
+    pb2 = p2.build().build()
     print(pb2.data[0])
     print(pb2)
 
     # zero-range discrete example
-    p3 = ggplot(df, aes('a', 'd')).layer(geom=GeomPoint(), inherit_aes=True)
-    pb3 = p3.build()
+    p3 = ggplot(df, aes('a', 'd')).geom_point()
+    pb3 = p3.build().build()
     print(pb3.data[0])
     print(pb3)
 
-    # todo: colour mapping example with add_group(), grouping, and colour pallette
-    # in tandem with scale_ function / default scale updates
-    p4 = ggplot(df, aes('a', 'b', col='c')).layer(geom=GeomPoint(), inherit_aes=True)
-    pb4 = p4.build()
+    p4 = ggplot(df, aes('a', 'b', col='c')).geom_point()
+    pb4 = p4.build().build()
     print(pb4.data[0])
     print(pb4)
 

@@ -10,10 +10,15 @@ NO_GROUP = -1
 def _df_id(df):
     groups = []
 
+    # for some reason this function gets called twice on the first group
+    # and therefore will return indicies starting at 1
+    # this is ok, since the group variable is just used in another
+    # groupby operation
     def f(grp):
-        grp["group"] = len(groups)
+        grp_id = len(groups)
+        grp["group"] = grp_id
         grp["__ids__"] = list(grp.index)
-        groups.append(len(groups))
+        groups.append(grp_id)
         return grp
     return df.groupby(list(df.columns)).apply(f).sort_values(by="__ids__")["group"]
 

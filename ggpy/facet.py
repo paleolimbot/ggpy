@@ -45,8 +45,10 @@ class Facet(object):
     def train_scales(self, x_scales, y_scales, layout, data, params):
         layout_ids = list(layout["PANEL"])
         for layer_data in data:
-            # todo: unsure about what exactly is getting passed in for layout and layer_data
-            match_id = [layout_ids.index(el) for el in layer_data["PANEL"]]
+            if len(data) == 0:
+                match_id = []
+            else:
+                match_id = [layout_ids.index(el) for el in layer_data["PANEL"]]
             if x_scales is not None:
                 x_vars = set(x_scales[0].aesthetics).intersection(set(layer_data.columns))
                 SCALE_X = layout["SCALE_X"][match_id]

@@ -92,7 +92,11 @@ class ScalesList(object):
             # need the original aesthetic values for this
             for scale, aesname in zip(scalekeys, aesthetics.keys()):
                 if scale in newkeys and not self.has_scale(scale):
-                    dtype = aesthetics.map(data, aesname, global_vars, local_vars).dtype
+                    obj = aesthetics.map(data, aesname, global_vars, local_vars)
+                    if hasattr(obj, "dtype"):
+                        dtype = obj.dtype
+                    else:
+                        dtype = type(obj).__name__
                     defaultscale = default_scale(str(dtype), scale)
                     if defaultscale is not None:
                         self.add(defaultscale)
@@ -105,7 +109,7 @@ class ScalesList(object):
 
 def default_scale(dtype, aes):
     # todo: need better default scale mapping strategy
-    if dtype in ('object', 'category'):
+    if dtype in ('object', 'category', 'str'):
         return discrete_scale(aes)
     elif dtype.startswith("<U"):
         return discrete_scale(aes)
